@@ -14,6 +14,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { zipSync } from "fflate";
+import { compensation, endRedirectUrl, recruitmentOf, recruitmentProblems, withParams } from "../src/recruitment.js";
 
 const configPath = "study.config.json";
 const config = JSON.parse(readFileSync(configPath, "utf8"));
@@ -21,6 +22,13 @@ const templateUuidPath = join(".jatos", "template-study-uuid");
 
 if ((config.dataSaving ?? "jatos") !== "jatos") {
   console.error(`study.config.json has "dataSaving": "${config.dataSaving}", so there's nothing to import into JATOS. Use npm run build and host dist/ instead (see docs/datapipe.md).`);
+  process.exit(1);
+}
+// A study that can't send participants back to Prolific or SONA would leave
+// them unpaid or uncredited, so don't build it (the template itself is exempt).
+const problems = recruitmentProblems(config);
+if (problems.length > 0 && !config.template) {
+  for (const problem of problems) console.error(`study.config.json: ${problem}`);
   process.exit(1);
 }
 // --check: only validate the config (run before building by npm run build:jatos).
@@ -59,7 +67,7 @@ const studyJson = {
     dirName: config.dirName,
     comments: `Built from git ${gitVersion()}`,
     studyInput: null,
-    endRedirectUrl: config.endRedirectUrl || null,
+    endRedirectUrl: endRedirectUrl(config) || null,
     studyEntryMsg: null,
     componentList: [
       {
@@ -120,4 +128,23 @@ files[`${config.dirName}.jas`] = new TextEncoder().encode(JSON.stringify(studyJs
 mkdirSync("jatos", { recursive: true });
 const out = join("jatos", `${config.dirName}.jzip`);
 writeFileSync(out, zipSync(files));
-if (!process.env.JATOS_LOCAL_IMPORT) console.log(`Wrote ${out}. Import it in JATOS: Studies > Import study.`);
+if (!process.env.JATOS_LOCAL_IMPORT) {
+  const recruitment = recruitmentOf(config);
+  console.log(`Wrote ${out}. Import it in JATOS: Studies > Import study.`);
+  console.log("");
+  console.log(`Study link (${recruitment.label}): in JATOS open the study's Study Links and copy the ${recruitment.jatosLink} link.`);
+  if (recruitment.linkParams) {
+    console.log("Add these URL parameters to the end, so participants' IDs are recorded:");
+    console.log(`  ${withParams("<JATOS link>", recruitment.linkParams)}`);
+  }
+  const pay = compensation(config);
+  if (recruitment.name === "sona") {
+    console.log("Paste the result into the Study URL of your SONA study.");
+    if (pay) console.log(`Set the study to ${pay.credit} credits on SONA (${pay.minutes} minutes), as the consent form says.`);
+  }
+  if (recruitment.name === "prolific") {
+    console.log("Paste the result into the study URL on Prolific.");
+    if (pay) console.log(`Set the reward to ${pay.payment} on Prolific (${pay.minutes} minutes), as the consent form says.`);
+  }
+  if (recruitment.name === "lab") console.log("Open it on each lab computer. A General Multiple link can be used for any number of participants.");
+}

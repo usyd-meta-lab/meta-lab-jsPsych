@@ -14,6 +14,7 @@ import { execFileSync, spawn } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { unzipSync } from "fflate";
+import { recruitmentOf, withParams } from "../src/recruitment.js";
 
 const JATOS_VERSION = "3.11.3";
 const PORT = 9000;
@@ -286,7 +287,8 @@ async function importStudy(token) {
   const codes = await api(token, `/jatos/api/v1/studies/${study.id}/studyCodes?type=GeneralMultiple`, { method: "POST" });
   if (!codes.ok) throw new Error(`Couldn't get a study link: ${codes.status} ${await codes.text()}`);
   const code = (await codes.json()).data[0];
-  const studyLink = `http://localhost:${PORT}/publix/${code}?PROLIFIC_PID=local-test&STUDY_ID=local&SESSION_ID=local`;
+  // Test IDs in the same URL parameters Prolific or SONA would add.
+  const studyLink = withParams(`http://localhost:${PORT}/publix/${code}`, recruitmentOf(config).testParams);
   writeLocalConfig({ studyLink });
   return { study, studyLink };
 }

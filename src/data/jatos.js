@@ -13,7 +13,10 @@
 import { initJsPsych } from "jspsych";
 import study from "../../study.config.json";
 import { buildTimeline, options } from "../experiment.js";
-import { message, prolificColumns, showSaveFailed, showSaving } from "./common.js";
+import { exitFullscreen } from "../blocks/device.js";
+import { showStopped, stoppedReason } from "../blocks/stop.js";
+import { participantColumns } from "../recruitment.js";
+import { message, showSaveFailed, showSaving } from "./common.js";
 
 /** Load jatos.js (served by JATOS next to index.html). Resolves to the
  *  `jatos` object, or null when the page is not being run through JATOS. */
@@ -30,7 +33,7 @@ function loadJatos() {
 /** Columns added to every trial: who the participant is and which build ran. */
 function participantInfo(jatos) {
   return {
-    ...prolificColumns(jatos.urlQueryParameters ?? {}),
+    ...participantColumns(study, jatos.urlQueryParameters ?? {}),
     jatos_study_result_id: jatos.studyResultId,
     jatos_worker_id: jatos.workerId,
     experiment_version: __EXPERIMENT_VERSION__,
@@ -78,8 +81,8 @@ function addWithdrawButton(jatos) {
 
 /**
  * Submit the complete dataset, then end the study in JATOS. JATOS then sends
- * the participant to the study's End Redirect URL (e.g. the Prolific
- * completion link) or shows its own end page.
+ * the participant to the study's End Redirect URL (the Prolific or SONA
+ * completion link, see src/recruitment.js) or shows its own end page.
  */
 async function finishStudy(jatos, jsPsych) {
   finished = true;
@@ -122,5 +125,28 @@ export async function run() {
   addWithdrawButton(jatos);
 
   await jsPsych.run(buildTimeline(jsPsych));
-  await finishStudy(jatos, jsPsych);
+  exitFullscreen();
+  const stopped = stoppedReason(jsPsych);
+  if (stopped) {
+    await endStopped(jatos, jsPsych, stopped);
+  } else {
+    await finishStudy(jatos, jsPsych);
+  }
+}
+
+/**
+ * The run was stopped early (wrong device, stimuli didn't load; see
+ * blocks/stop.js): show why, save what was recorded, and end the run as
+ * failed ("Stopped: <reason>") without the completion redirect, so the
+ * participant isn't paid or credited.
+ */
+async function endStopped(jatos, jsPsych, reason) {
+  finished = true;
+  showStopped(jsPsych.getDisplayElement(), reason);
+  try {
+    await jatos.submitResultData(toNdjson(jsPsych.data.get().values()));
+  } catch (error) {
+    jatos.log?.(`Data submit for a stopped run failed: ${error}`);
+  }
+  jatos.endStudyWithoutRedirect(false, `Stopped: ${reason}`).catch(() => {});
 }

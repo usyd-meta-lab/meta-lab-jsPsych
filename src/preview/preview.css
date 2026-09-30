@@ -96,7 +96,7 @@
 
 .pv-tiles {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 @media (max-width: 560px) {
@@ -226,3 +226,33 @@
   overflow-x: auto;
   max-height: 60vh;
 }
+
+/* Recruitment: the study URL to give out and the end redirect. */
+.pv .pv-recruitment {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  background: var(--pv-surface);
+  border: 1px solid var(--pv-line);
+  border-radius: 8px;
+}
+.pv .pv-recruitment p { margin: 0 0 6px; }
+.pv .pv-recruitment p:last-child { margin-bottom: 0; }
+.pv .pv-recruitment code { font-family: var(--pv-mono); font-size: 12px; overflow-wrap: anywhere; }
+.pv .pv-code {
+  display: block;
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  background: #ffffff;
+  border: 1px solid var(--pv-line);
+  border-radius: 6px;
+  user-select: all;
+}
+
+/* What an excluded participant sees, shown in the run's results. */
+.pv .pv-excluded-message {
+  margin: 8px 0;
+  padding: 8px 12px;
+  background: #ffffff;
+  border-radius: 6px;
+}
+.pv .pv-excluded-message p { margin: 4px 0; }

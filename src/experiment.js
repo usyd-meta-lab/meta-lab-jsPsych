@@ -1,4 +1,9 @@
 import htmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
+import { consent } from "./blocks/consent.js";
+import { debrief } from "./blocks/debrief.js";
+import { demographics } from "./blocks/demographics.js";
+import { deviceCheck, fullscreen } from "./blocks/device.js";
+import { preload } from "./blocks/preload.js";
 
 /** Extra options for initJsPsych, used by participant runs and previews. */
 export const options = {};
@@ -71,5 +76,5 @@ export function buildTimeline(jsPsych) {
     stimulus: "<p>All done, thank you!</p><p>Press any key to finish.</p>",
   };
 
-  return [welcome, practice, main, goodbye];
+  return [deviceCheck(), consent(), demographics(), fullscreen(), preload(jsPsych), welcome, practice, main, goodbye, debrief()];
 }

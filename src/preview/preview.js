@@ -10,6 +10,8 @@
 // Item numbers match the ones shown in the timeline view.
 
 import { initJsPsych } from "jspsych";
+import { exitFullscreen } from "../blocks/device.js";
+import { stopMessage, stoppedReason } from "../blocks/stop.js";
 import { buildTimeline, options } from "../experiment.js";
 import {
   describeTimeline,
@@ -43,7 +45,22 @@ export function startPreview() {
   root.className = "pv";
   document.body.append(root);
   // Describe the timeline once with a throwaway jsPsych instance.
-  items = describeTimeline(buildTimeline(initJsPsych()));
+  try {
+    items = describeTimeline(buildTimeline(initJsPsych()));
+  } catch (error) {
+    // e.g. stimulus("cat.pgn"): say what's wrong instead of a blank page.
+    root.append(
+      el(
+        "main",
+        { class: "pv-page" },
+        el("p", { class: "pv-eyebrow" }, "Experiment dashboard"),
+        el("h1", {}, "The experiment has an error"),
+        el("p", { class: "pv-warning" }, error.message),
+        el("p", { class: "pv-note" }, "Fix it in src/experiment.js. This page reloads when you save."),
+      ),
+    );
+    throw error;
+  }
   window.addEventListener("popstate", route);
   route();
 }
@@ -223,11 +240,54 @@ function tile(label, value, hint, extraClass = "") {
   );
 }
 
+function compensationText({ minutes, credit, payment }) {
+  return credit !== undefined
+    ? `${minutes} minutes: set the study to ${credit} ${credit === 1 ? "credit" : "credits"} on SONA (the consent form says the same).`
+    : `${minutes} minutes: set the reward to ${payment} on Prolific (the consent form says the same).`;
+}
+
+function devicesText({ devices, name }) {
+  const labels = { computer: "computers", tablet: "tablets", phone: "phones" };
+  const list = devices.map((d) => labels[d]).join(", ");
+  // Prolific's own device filter stops excluded devices being recruited at all.
+  const prolific = { computer: "Desktop", tablet: "Tablet", phone: "Mobile" };
+  const filter = devices.map((d) => prolific[d]).join(", ");
+  return name === "prolific"
+    ? `Allowed devices: ${list}. On Prolific, set Device compatibility to ${filter} only.`
+    : `Allowed devices: ${list}. Other devices are stopped at the device check.`;
+}
+
+/** Where participants come from, the study URL to give out, and where they go at the end. */
+function recruitmentPanel(recruitment, datapipe) {
+  if (!recruitment) return null;
+  const base = datapipe ? "<your web host address>" : `<JATOS ${recruitment.jatosLink} link>`;
+  const url = recruitment.linkParams ? `${base}?${recruitment.linkParams}` : base;
+  const where = { sona: "SONA's Study URL field", prolific: "Prolific's study URL field", lab: "the browser on each lab computer" };
+  return el(
+    "div",
+    { class: "pv-recruitment" },
+    el("p", {}, el("strong", {}, `Recruitment: ${recruitment.label}. `), `Study URL for ${where[recruitment.name]}:`),
+    el("code", { class: "pv-code" }, url),
+    recruitment.linkParams &&
+      el("p", { class: "pv-note" }, "Keep the part after ? exactly as shown: it records each participant's ID."),
+    // Must match what's set on SONA or Prolific and what the consent form says.
+    recruitment.compensation &&
+      el("p", { class: "pv-note" }, compensationText(recruitment.compensation)),
+    el("p", { class: "pv-note" }, devicesText(recruitment)),
+    recruitment.redirect
+      ? el("p", { class: "pv-note" }, "At the end, participants are sent to: ", el("code", {}, recruitment.redirect))
+      : el("p", { class: "pv-note" }, "At the end, participants see a thank-you page (no redirect)."),
+    recruitment.problems.map((problem) => el("p", { class: "pv-warning" }, problem)),
+  );
+}
+
 function renderParticipants(body, meta, refresh, info) {
+  const recruitment = recruitmentPanel(info.recruitment, info.datapipe);
+  const show = (...children) => body.replaceChildren(...[recruitment, ...children].filter(Boolean));
   if (info.datapipe) {
     refresh.hidden = true;
     meta.textContent = "DataPipe";
-    body.replaceChildren(
+    show(
       el(
         "p",
         { class: "pv-note" },
@@ -244,7 +304,7 @@ function renderParticipants(body, meta, refresh, info) {
   }
   if (!info.configured) {
     refresh.hidden = true;
-    body.replaceChildren(
+    show(
       el(
         "p",
         { class: "pv-note" },
@@ -255,7 +315,7 @@ function renderParticipants(body, meta, refresh, info) {
   }
   if (info.error) {
     meta.textContent = `${info.title} on ${info.server}`;
-    body.replaceChildren(el("p", { class: "pv-warning" }, info.error));
+    show(el("p", { class: "pv-warning" }, info.error));
     return;
   }
 
@@ -269,7 +329,7 @@ function renderParticipants(body, meta, refresh, info) {
   ].filter(Boolean);
 
   const status = el("span", { class: "pv-status", role: "status" });
-  body.replaceChildren(
+  show(
     info.local &&
       el(
         "p",
@@ -299,6 +359,7 @@ function renderParticipants(body, meta, refresh, info) {
       tile("Dropped out", counts.droppedOut, `Started but inactive for over ${info.inProgressMinutes} minutes`),
       tile("Withdrew", counts.withdrawn, "Used the withdraw button; their data was deleted"),
       tile("Failed", counts.failed, "JATOS ended the run, e.g. after a page reload"),
+      tile("Wrong device", counts.wrongDevice, "Stopped at the device check; not paid or credited"),
     ),
     el(
       "div",
@@ -368,9 +429,10 @@ async function runPreview(mode, path) {
     mode === "from" ? sliceFrom(full, path) : mode === "only" ? sliceOnly(full, path) : full;
 
   await jsPsych.run(timeline);
+  exitFullscreen();
   if (activeRun !== run) return; // the researcher navigated away mid-run
   activeRun = null;
-  renderFinished(stage, jsPsych.data.get(), fileStem(mode, path));
+  renderFinished(stage, jsPsych.data.get(), fileStem(mode, path), stoppedReason(jsPsych));
 }
 
 function stopActiveRun() {
@@ -382,6 +444,7 @@ function stopActiveRun() {
   } catch {
     // Already finished or not started yet.
   }
+  exitFullscreen();
 }
 
 // ---------------------------------------------------------------- download
@@ -427,7 +490,24 @@ function downloadButton(label, filename, getText, status) {
   );
 }
 
-function renderFinished(stage, data, stem) {
+const STOP_REASONS = {
+  device: "Stopped at the device check: this device isn't allowed. ",
+  preload: "Stopped because stimuli failed to load (see failed_files below). ",
+};
+
+function stoppedNotice(reason) {
+  const shown = el("div", { class: "pv-excluded-message" });
+  shown.innerHTML = stopMessage(reason);
+  return el(
+    "div",
+    { class: "pv-warning" },
+    el("p", {}, el("strong", {}, STOP_REASONS[reason]), "Participants see:"),
+    shown,
+    el("p", {}, "They aren't redirected, so they aren't paid or credited."),
+  );
+}
+
+function renderFinished(stage, data, stem, stopped = null) {
   const count = data.count();
   const status = el("span", { class: "pv-status", role: "status" });
   stage.replaceChildren(
@@ -436,6 +516,8 @@ function renderFinished(stage, data, stem) {
       { class: "pv-done" },
       el("h2", {}, "Finished"),
       el("p", {}, `${count} ${count === 1 ? "trial" : "trials"} recorded. Data below.`),
+      // Participants on a device that isn't allowed see this and nothing more.
+      stopped && stoppedNotice(stopped),
       el(
         "div",
         { class: "pv-actions" },

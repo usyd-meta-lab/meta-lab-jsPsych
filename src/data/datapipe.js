@@ -5,18 +5,21 @@
 // Uses DataPipe's official jsPsych extension. It streams each trial as it
 // finishes, so DataPipe keeps the trials of a participant who drops out (as
 // a .partial.json file), and at the end saves the complete data as one CSV
-// file named <PROLIFIC_PID>_<SESSION_ID>.csv. The participant is sent to the
-// End Redirect URL only after DataPipe has accepted that file.
+// file named <participant ID>_<session or run ID>.csv. The participant is
+// sent to the End Redirect URL only after DataPipe has accepted that file.
 //
 // DataPipe only receives data. The experiment itself is hosted elsewhere
-// (any static web host) and participants arrive with Prolific's URL
-// parameters in the link.
+// (any static web host) and participants arrive with Prolific's or SONA's
+// URL parameters in the link (see src/recruitment.js).
 
 import PipeExtension from "@jspsych/extension-pipe";
 import { initJsPsych } from "jspsych";
 import study from "../../study.config.json";
 import { buildTimeline, options } from "../experiment.js";
-import { fillRedirectUrl, message, prolificColumns, showSaveFailed, showSaving } from "./common.js";
+import { exitFullscreen } from "../blocks/device.js";
+import { showStopped, stoppedReason } from "../blocks/stop.js";
+import { endRedirectUrl, participantColumns, participantId } from "../recruitment.js";
+import { fillRedirectUrl, message, showSaveFailed, showSaving } from "./common.js";
 
 // VITE_DATAPIPE_URL (set when building) is only for testing against a mock.
 const DATAPIPE_URL = import.meta.env.VITE_DATAPIPE_URL || "https://pipe.jspsych.org";
@@ -26,10 +29,10 @@ const SAVE_TIMEOUT_MS = 30000;
 const params = Object.fromEntries(new URLSearchParams(window.location.search));
 
 // DataPipe rejects a second file with the same name, so every run needs its
-// own. Prolific's IDs make the file easy to match to a submission.
+// own. The participant's ID makes the file easy to match to a submission.
 const safe = (text) => String(text).replace(/[^\w-]/g, "_").slice(0, 60);
 const runId = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
-const filename = `${safe(params.PROLIFIC_PID ?? "participant")}_${safe(params.SESSION_ID ?? runId)}.csv`;
+const filename = `${safe(participantId(study, params) ?? "participant")}_${safe(params.SESSION_ID ?? runId)}.csv`;
 
 /** Direct save, used when the participant retries after a failed save. */
 async function saveCsv(csv) {
@@ -49,8 +52,9 @@ async function saveCsv(csv) {
 }
 
 function finish(jsPsych) {
-  if (study.endRedirectUrl) {
-    window.location.href = fillRedirectUrl(study.endRedirectUrl, params);
+  const redirect = endRedirectUrl(study);
+  if (redirect) {
+    window.location.href = fillRedirectUrl(redirect, params);
   } else {
     message(jsPsych.getDisplayElement(), "All done, thank you! Your responses have been saved.", "You can close this page now.");
   }
@@ -106,7 +110,7 @@ export async function run() {
     ],
   });
   jsPsych.data.addProperties({
-    ...prolificColumns(params),
+    ...participantColumns(study, params),
     datapipe_file: filename,
     experiment_version: __EXPERIMENT_VERSION__,
   });
@@ -133,6 +137,15 @@ export async function run() {
 
   await jsPsych.run(timeline);
   clearTimeout(watchdog);
+  exitFullscreen();
+
+  // Stopped early (wrong device, stimuli didn't load): whatever was recorded
+  // has been sent; show why and don't redirect, so they aren't paid or credited.
+  const stopped = stoppedReason(jsPsych);
+  if (stopped) {
+    settle(() => showStopped(jsPsych.getDisplayElement(), stopped));
+    return;
+  }
 
   settle(() => {
     if (saveResult?.ok) {

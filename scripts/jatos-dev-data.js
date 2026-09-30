@@ -9,6 +9,8 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { loadEnv } from "vite";
+import { devicesOf, EXCLUDED_DEVICE } from "../src/devices.js";
+import { compensation, endRedirectUrl, recruitmentOf, recruitmentProblems } from "../src/recruitment.js";
 
 const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
@@ -25,7 +27,8 @@ export function classifyRun(result, now = Date.now()) {
     case "ABORTED":
       return "withdrawn";
     case "FAIL":
-      return "failed";
+      // Ended at the device check (src/data/jatos.js), not a real failure.
+      return result.message === EXCLUDED_DEVICE ? "wrongDevice" : "failed";
     default: {
       const lastSeen = result.lastSeenDate ?? result.startDate ?? 0;
       return now - lastSeen < IN_PROGRESS_MINUTES * 60000 ? "inProgress" : "droppedOut";
@@ -42,7 +45,7 @@ const median = (values) => {
 
 /** Dashboard numbers from JATOS result metadata. No participant IDs. */
 export function summarise(results, now = Date.now()) {
-  const counts = { completed: 0, inProgress: 0, droppedOut: 0, withdrawn: 0, failed: 0, tests: 0 };
+  const counts = { completed: 0, inProgress: 0, droppedOut: 0, withdrawn: 0, failed: 0, wrongDevice: 0, tests: 0 };
   const durations = [];
   let lastCompletedAt = null;
   for (const result of results) {
@@ -146,13 +149,30 @@ async function metadata(env, uuid) {
   return json.data?.[0]?.studyResults ?? [];
 }
 
+/** How participants reach the study and where they go afterwards. */
+function recruitmentSummary(study) {
+  const recruitment = recruitmentOf(study);
+  return {
+    label: recruitment.label,
+    name: recruitment.name,
+    linkParams: recruitment.linkParams,
+    jatosLink: recruitment.jatosLink,
+    redirect: endRedirectUrl(study),
+    compensation: compensation(study),
+    devices: devicesOf(study),
+    problems: recruitmentProblems(study),
+  };
+}
+
 async function summary(env) {
   const study = studyConfig();
+  const recruitment = recruitmentSummary(study);
   // DataPipe has no API for reading data back: it lives with the storage
   // provider chosen in the DataPipe dashboard.
-  if (study.dataSaving === "datapipe") return { configured: true, datapipe: true, title: study.title };
-  if (!env.JATOS_URL || !env.JATOS_API_TOKEN) return { configured: false };
+  if (study.dataSaving === "datapipe") return { configured: true, datapipe: true, title: study.title, recruitment };
+  if (!env.JATOS_URL || !env.JATOS_API_TOKEN) return { configured: false, recruitment };
   const base = {
+    recruitment,
     configured: true,
     server: env.local ? "local JATOS" : new URL(env.JATOS_URL).host,
     title: study.title,
@@ -208,6 +228,7 @@ const FIRST_COLUMNS = [
   "prolific_pid",
   "prolific_study_id",
   "prolific_session_id",
+  "sona_id",
   "jatos_study_result_id",
   "jatos_worker_id",
   "jatos_worker_type",
@@ -218,8 +239,9 @@ const FIRST_COLUMNS = [
 ];
 
 function toCsv(rows) {
-  const seen = new Set(FIRST_COLUMNS);
-  const columns = [...FIRST_COLUMNS];
+  // ID columns first, but only the ones this study records (Prolific or SONA).
+  const columns = FIRST_COLUMNS.filter((column) => rows.length === 0 || rows.some((row) => column in row));
+  const seen = new Set(columns);
   for (const row of rows) {
     for (const key of Object.keys(row)) {
       if (!seen.has(key)) {

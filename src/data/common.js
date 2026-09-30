@@ -30,15 +30,6 @@ export function showSaveFailed(displayElement, onRetry) {
 export const showSaving = (displayElement) =>
   message(displayElement, "Saving your responses…", "Please don't close this page.");
 
-/** Prolific's URL parameters as data columns (null when absent). */
-export function prolificColumns(params) {
-  return {
-    prolific_pid: params.PROLIFIC_PID ?? null,
-    prolific_study_id: params.STUDY_ID ?? null,
-    prolific_session_id: params.SESSION_ID ?? null,
-  };
-}
-
 /**
  * Fill [NAME] placeholders in a redirect URL from the study link's URL
  * parameters, e.g. https://example.org/done?pid=[PROLIFIC_PID]. Same syntax

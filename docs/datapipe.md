@@ -23,20 +23,21 @@ Use JATOS (the default, see [jatos.md](jatos.md)) unless you have a reason to pr
    "datapipeExperimentId": "<your experiment ID>",
    "endRedirectUrl": "https://app.prolific.com/submissions/complete?cc=XXXXXXX"
    ```
-   `endRedirectUrl` works as with JATOS, including `[PROLIFIC_PID]`-style placeholders. Leave it empty to show a "your responses have been saved" message instead.
+   `endRedirectUrl` works as with JATOS, including `[PROLIFIC_PID]`-style placeholders. For SONA, set `"recruitment": "sona"` and paste SONA's completion URL instead (see [recruitment.md](recruitment.md)). Leave it empty to show a "your responses have been saved" message instead.
 3. In the DataPipe dashboard, turn **data collection** on when you're ready to test or collect.
 4. Run `npm run build` and upload the contents of `dist/` to your web host.
-5. In Prolific, use your hosted page's address as the study URL with Prolific's URL parameters, e.g.
+5. Use your hosted page's address as the study URL, with the URL parameters for your recruitment:
    ```
-   https://your-host/your-study/?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
+   Prolific: https://your-host/your-study/?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
+   SONA:     https://your-host/your-study/?id=%SURVEY_CODE%
    ```
 
 ## What gets saved
 
-- Each participant's data is one CSV file named `<PROLIFIC_PID>_<SESSION_ID>.csv` (a random name when those are missing).
+- Each participant's data is one CSV file named after their Prolific or SONA ID, e.g. `<PROLIFIC_PID>_<SESSION_ID>.csv` (a random name when those are missing).
 - Each trial is also streamed as it finishes, so if a participant drops out, DataPipe saves their trials as a `.partial.json` file.
 - The participant is redirected only after DataPipe has accepted the file. If saving fails, they see a "Try again" button. If DataPipe doesn't answer within 30 seconds, the experiment saves directly and continues, so nobody is left on "Saving…".
-- Every row has `prolific_pid`, `prolific_study_id`, `prolific_session_id`, `datapipe_file` and `experiment_version`.
+- Every row has `datapipe_file` and `experiment_version`, plus the participant's ID (`prolific_pid`, `prolific_study_id`, `prolific_session_id` for Prolific, or `sona_id` for SONA).
 
 ## Testing
 

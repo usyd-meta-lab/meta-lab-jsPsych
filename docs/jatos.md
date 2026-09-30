@@ -30,11 +30,14 @@ Edit `study.config.json`:
 | - | - |
 | `template` | `true` only in the template repo itself: its study UUID is then kept in `.jatos/` instead of being committed. **Set it to `false` (or delete it) when you start a new study from the template.** |
 | `title` | Study name shown in JATOS. |
+| `recruitment` | `"prolific"` (default), `"sona"` or `"lab"`: where participants come from. Sets the study link's URL parameters, the ID columns and the end redirect. See [recruitment.md](recruitment.md). |
+| `minutes` | How long the study takes. The consent form shows it, with the SONA credit or Prolific payment worked out from it. |
+| `devices` | Devices participants may use: `"computer"`, `"tablet"`, `"phone"`. Default `["computer"]`. See [recruitment.md](recruitment.md#devices). |
 | `dataSaving` | `"jatos"` (default) or `"datapipe"`. See [datapipe.md](datapipe.md) for DataPipe. |
 | `datapipeExperimentId` | Only for DataPipe: the experiment ID from the DataPipe dashboard. |
 | `dirName` | Folder name for the study's files on the JATOS server. Letters, digits, `-` and `_` only. Must be unique on the server. |
 | `uuid` | Leave empty. The first `npm run build:jatos` fills it in. Commit it: re-importing an archive with the same UUID updates the existing JATOS study instead of creating a new one. **If you copy another study's folder to start a new study, clear this field**, or importing will overwrite the other study. |
-| `endRedirectUrl` | Where participants go after the data is saved, e.g. the Prolific completion URL `https://app.prolific.com/submissions/complete?cc=XXXXXXX`. Values from the study link can be inserted with square brackets, e.g. `[PROLIFIC_PID]`. Empty shows JATOS's own end page. |
+| `endRedirectUrl` | Where participants go after the data is saved: the Prolific completion URL `https://app.prolific.com/submissions/complete?cc=XXXXXXX`, or for SONA the study's completion URL pasted as is (see [recruitment.md](recruitment.md)). Values from the study link can be inserted with square brackets, e.g. `[PROLIFIC_PID]`. Empty shows JATOS's own end page. |
 | `withdrawButton` | `true` adds a "Withdraw" button in the corner. After the participant confirms, JATOS ends the study and deletes everything they submitted. |
 
 ## 2. Build and import
@@ -49,30 +52,29 @@ To update a study, rebuild and import again. JATOS asks whether to overwrite the
 
 Each build records its git commit in every data row (`experiment_version`). Commit your changes before building for data collection; a version ending in `-dirty` means the build included uncommitted changes.
 
-## 3. Connect to Prolific
+## 3. Connect to Prolific or SONA
 
-1. In JATOS, open the study's **Study Links**. Use the **General Single** link (each browser can take part once; the imported study already allows it).
-2. In Prolific, paste that link as the study URL and choose Prolific's option to add URL parameters. The link should end up like:
-   ```
-   https://your-jatos-server/publix/<code>?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
-   ```
-3. Set `endRedirectUrl` to Prolific's completion URL (or set **End Redirect URL** in the JATOS study properties).
+`npm run build:jatos` prints which study link to copy from the study's **Study Links** in JATOS and the URL parameters to add to it:
 
-See also the JATOS guide [Use Prolific](https://www.jatos.org/Use-Prolific.html).
+- Prolific: the **General Single** link plus `?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}`
+- SONA: the **General Single** link plus `?id=%SURVEY_CODE%`
+- In the lab: the **General Multiple** link as it is
+
+See [recruitment.md](recruitment.md) for setting up each one, including the completion URLs.
 
 ## What gets saved
 
 - Each trial is saved as soon as it finishes, so data from participants who drop out is kept.
 - At the end, the complete dataset is saved again, then the participant is redirected.
 - If the connection drops, trials are resent with the next save. If the final save fails, the participant sees a "Try again" button and is not redirected until the data is saved.
-- Every row has `prolific_pid`, `prolific_study_id`, `prolific_session_id`, `jatos_study_result_id`, `jatos_worker_id` and `experiment_version`.
+- Every row has `jatos_study_result_id`, `jatos_worker_id` and `experiment_version`, plus the participant's ID: `prolific_pid`, `prolific_study_id` and `prolific_session_id` for Prolific, or `sona_id` for SONA.
 - Reloading the page ends the study (JATOS shows an error page) and keeps the trials already saved. `jatos.js` warns participants before they leave the page.
 
 ## Getting the data out
 
 ### From the experiment dashboard (easiest)
 
-`npm run dev` opens the experiment dashboard. Its **Participants** section shows how many participants have completed (with completion rate, median time and when the last one finished), how many are in progress right now, dropped out, withdrew or failed, and has **Download CSV** / **Download NDJSON** buttons. It refreshes every minute while open. "In progress" means not finished and active in the last 5 minutes; after that a run counts as dropped out. Runs started from inside JATOS (your own tests) are left out of the counts. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
+`npm run dev` opens the experiment dashboard. Its **Participants** section shows how many participants have completed (with completion rate, median time and when the last one finished), how many are in progress right now, dropped out, withdrew, failed or were stopped at the device check (wrong device), and has **Download CSV** / **Download NDJSON** buttons. It refreshes every minute while open. "In progress" means not finished and active in the last 5 minutes; after that a run counts as dropped out. Runs started from inside JATOS (your own tests) are left out of the counts. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
 
 For local JATOS this is automatic (see [Testing with local JATOS](#testing-with-local-jatos)). For the lab's server, set it up once per computer:
 

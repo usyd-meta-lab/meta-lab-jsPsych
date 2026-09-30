@@ -29,6 +29,8 @@ To test the whole data path before the lab server exists, run `npm run jatos`. I
 
 Setup, Prolific, data export and local testing: see [docs/jatos.md](docs/jatos.md).
 
+Participants can come from Prolific, SONA or the lab: set `recruitment` in `study.config.json`. For SONA, paste the study's completion URL into `endRedirectUrl` and participants get their credit automatically. The dashboard shows the exact study link to paste into Prolific or SONA. See [docs/recruitment.md](docs/recruitment.md).
+
 Studies can save to [DataPipe](https://pipe.jspsych.org) instead: set `"dataSaving": "datapipe"` and the DataPipe experiment ID in `study.config.json`, then host `dist/` on any web host. See [docs/datapipe.md](docs/datapipe.md) for the differences.
 
 ## Designing an experiment with Claude
@@ -55,6 +57,10 @@ index.html            page shell
 src/main.js           entry point (participant run, or preview mode in dev)
 src/experiment.js     the experiment timeline: edit this
 src/data/             saving participant data: jatos.js or datapipe.js (participant build only)
+src/recruitment.js    Prolific / SONA / lab: study link parameters, ID columns, end redirect
+src/blocks/           standard lab blocks: device check, fullscreen, consent forms, demographics, preload, debrief
+src/stimuli/          images, audio and video (see src/stimuli/README.md)
+src/stimuli.js        stimulus("name") and stimuliIn("folder") for referring to them
 src/preview/          experiment dashboard (never shipped to participants)
 study.config.json     JATOS study settings (title, UUID, Prolific redirect)
 scripts/build-jatos.mjs  packages dist/ as a JATOS study archive
