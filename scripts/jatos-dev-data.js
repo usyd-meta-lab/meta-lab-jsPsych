@@ -12,15 +12,57 @@ import { loadEnv } from "vite";
 
 const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
 
-// JATOS study states, grouped the way a researcher reads them.
-const STATE_GROUPS = {
-  FINISHED: "finished",
-  ABORTED: "withdrawn",
-  FAIL: "failed",
-  PRE: "incomplete",
-  STARTED: "incomplete",
-  DATA_RETRIEVED: "incomplete",
+// jatos.js sends a heartbeat every minute while the experiment is open, so a
+// run that hasn't ended and hasn't been seen for this long has been abandoned.
+const IN_PROGRESS_MINUTES = 5;
+
+/** Group a JATOS study result the way a researcher reads it. */
+export function classifyRun(result, now = Date.now()) {
+  if (result.workerType === "Jatos") return "tests";
+  switch (result.studyState) {
+    case "FINISHED":
+      return "completed";
+    case "ABORTED":
+      return "withdrawn";
+    case "FAIL":
+      return "failed";
+    default: {
+      const lastSeen = result.lastSeenDate ?? result.startDate ?? 0;
+      return now - lastSeen < IN_PROGRESS_MINUTES * 60000 ? "inProgress" : "droppedOut";
+    }
+  }
+}
+
+const median = (values) => {
+  if (values.length === 0) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
+
+/** Dashboard numbers from JATOS result metadata. No participant IDs. */
+export function summarise(results, now = Date.now()) {
+  const counts = { completed: 0, inProgress: 0, droppedOut: 0, withdrawn: 0, failed: 0, tests: 0 };
+  const durations = [];
+  let lastCompletedAt = null;
+  for (const result of results) {
+    const group = classifyRun(result, now);
+    counts[group] += 1;
+    if (group === "completed" && result.startDate && result.endDate) {
+      durations.push(result.endDate - result.startDate);
+      lastCompletedAt = Math.max(lastCompletedAt ?? 0, result.endDate);
+    }
+  }
+  const stopped = counts.completed + counts.droppedOut + counts.withdrawn + counts.failed;
+  return {
+    counts,
+    completionRate: stopped > 0 ? counts.completed / stopped : null,
+    medianMinutes: durations.length > 0 ? median(durations) / 60000 : null,
+    lastCompletedAt,
+    updatedAt: now,
+    inProgressMinutes: IN_PROGRESS_MINUTES,
+  };
+}
 
 export function jatosDevData() {
   let env = {};
@@ -91,12 +133,7 @@ async function summary(env) {
     return { ...base, error: "This study has no UUID yet. Run npm run build:jatos and import it into JATOS." };
   }
   try {
-    const counts = { finished: 0, incomplete: 0, withdrawn: 0, failed: 0, tests: 0 };
-    for (const result of await metadata(env, study.uuid)) {
-      if (result.workerType === "Jatos") counts.tests += 1;
-      else counts[STATE_GROUPS[result.studyState] ?? "incomplete"] += 1;
-    }
-    return { ...base, counts };
+    return { ...base, ...summarise(await metadata(env, study.uuid)) };
   } catch (error) {
     return { ...base, error: error.message };
   }

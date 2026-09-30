@@ -1,4 +1,5 @@
-// Preview mode: a clickable timeline of the experiment for researchers.
+// Experiment dashboard: participant numbers from JATOS (dev server only) and
+// a clickable timeline for previewing any part of the experiment.
 // Loaded only by `npm run dev` and `npm run build:preview` (see main.js).
 //
 // Routes (URL hash):
@@ -30,6 +31,7 @@ const MODE_LABELS = {
 let root;
 let items;
 let activeRun = null;
+let refreshTimer = null;
 // In a published Claude artifact, files can only be saved through the
 // viewer's `downloads` capability. Elsewhere (the dev server) window.claude
 // is absent and a normal browser download is used.
@@ -64,6 +66,7 @@ function parseRoute() {
 
 function route() {
   stopActiveRun();
+  clearInterval(refreshTimer);
   const target = parseRoute();
   if (target && !target.invalid) {
     runPreview(target.mode, target.path);
@@ -134,14 +137,9 @@ function renderTimeline(invalidHash) {
         el(
           "div",
           {},
-          el("p", { class: "pv-eyebrow" }, "Preview mode"),
+          el("p", { class: "pv-eyebrow" }, "Experiment dashboard"),
           el("h1", {}, document.title),
-          el(
-            "p",
-            { class: "pv-note" },
-            "Click any block or trial to start the experiment from that point. ",
-            "Use Only this to run a single part. Participants never see this screen.",
-          ),
+          el("p", { class: "pv-note" }, "For the research team only. Participants never see this page."),
         ),
         el(
           "button",
@@ -149,65 +147,134 @@ function renderTimeline(invalidHash) {
           "Run full experiment",
         ),
       ),
-      // Real participant data from JATOS: dev server only (see
+      // Real participant numbers and data from JATOS: dev server only (see
       // scripts/jatos-dev-data.js). Never in the artifact or participant build.
-      import.meta.env.DEV && participantDataPanel(),
-      invalidHash &&
+      import.meta.env.DEV && participantsSection(),
+      el(
+        "section",
+        { class: "pv-section", "aria-labelledby": "pv-timeline-heading" },
+        el("h2", { id: "pv-timeline-heading" }, "Timeline"),
         el(
           "p",
-          { class: "pv-warning", role: "status" },
-          `No part of the timeline matches #${invalidHash}. The timeline may have changed.`,
+          { class: "pv-note" },
+          "Click any block or trial to preview the experiment from that point. ",
+          "Use Only this to run a single part.",
         ),
-      el("ol", { class: "pv-list pv-root" }, items.map(renderItem)),
+        invalidHash &&
+          el(
+            "p",
+            { class: "pv-warning", role: "status" },
+            `No part of the timeline matches #${invalidHash}. The timeline may have changed.`,
+          ),
+        el("ol", { class: "pv-list pv-root" }, items.map(renderItem)),
+      ),
     ),
   );
 }
 
-// -------------------------------------------------------- participant data
+// ------------------------------------------------------------- participants
 
-function participantDataPanel() {
-  const panel = el("section", { class: "pv-jatos", "aria-label": "Participant data" });
-  fetch("/__jatos/summary")
-    .then((response) => response.json())
-    .then((info) => renderParticipantData(panel, info))
-    .catch(() => panel.remove());
-  return panel;
+function participantsSection() {
+  const body = el("div", { class: "pv-participants-body" }, el("p", { class: "pv-note" }, "Checking JATOS…"));
+  const meta = el("span", { class: "pv-note" });
+  const refresh = el("button", { type: "button", class: "pv-small" }, "Refresh");
+  const section = el(
+    "section",
+    { class: "pv-section pv-participants", "aria-labelledby": "pv-participants-heading" },
+    el("div", { class: "pv-section-head" }, el("h2", { id: "pv-participants-heading" }, "Participants"), meta, refresh),
+    body,
+  );
+
+  const load = () =>
+    fetch("/__jatos/summary")
+      .then((response) => response.json())
+      .then((info) => renderParticipants(body, meta, refresh, info))
+      .catch(() => section.remove());
+  refresh.addEventListener("click", load);
+  load();
+  // Keep the numbers current while the dashboard is open.
+  refreshTimer = setInterval(load, 60000);
+  return section;
 }
 
-function renderParticipantData(panel, info) {
-  const heading = el("h2", {}, "Participant data");
+const formatTime = (ms) => new Date(ms).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+function formatDuration(minutes) {
+  if (minutes < 1) return `${Math.round(minutes * 60)} s`;
+  if (minutes < 90) return `${minutes.toFixed(1)} min`;
+  return `${(minutes / 60).toFixed(1)} h`;
+}
+
+function timeAgo(ms) {
+  const minutes = Math.round((Date.now() - ms) / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 48) return `${hours} h ago`;
+  return new Date(ms).toLocaleDateString();
+}
+
+function tile(label, value, hint, extraClass = "") {
+  return el(
+    "div",
+    { class: `pv-tile ${extraClass}`, title: hint },
+    el("span", { class: "pv-tile-label" }, label),
+    el("span", { class: "pv-tile-value" }, String(value)),
+  );
+}
+
+function renderParticipants(body, meta, refresh, info) {
   if (!info.configured) {
-    panel.replaceChildren(
-      heading,
+    refresh.hidden = true;
+    body.replaceChildren(
       el(
         "p",
-        { class: "pv-jatos-note" },
-        "To download results from JATOS here, add JATOS_URL and JATOS_API_TOKEN to .env.local (see docs/jatos.md).",
+        { class: "pv-note" },
+        "To see participant numbers and download data here, add JATOS_URL and JATOS_API_TOKEN to .env.local (see docs/jatos.md).",
       ),
     );
     return;
   }
-  const source = el("p", { class: "pv-jatos-note" }, `${info.title} on ${info.server}`);
   if (info.error) {
-    panel.replaceChildren(heading, source, el("p", { class: "pv-warning" }, info.error));
+    meta.textContent = `${info.title} on ${info.server}`;
+    body.replaceChildren(el("p", { class: "pv-warning" }, info.error));
     return;
   }
-  const { finished, incomplete, withdrawn, failed, tests } = info.counts;
-  const counts = [
-    [finished, "finished"],
-    [incomplete, "incomplete"],
-    [withdrawn, "withdrawn"],
-    [failed, "failed"],
-    [tests, tests === 1 ? "test run" : "test runs"],
-  ];
+
+  meta.textContent = `${info.server} · updated ${formatTime(info.updatedAt)}`;
+  const { counts } = info;
+  const facts = [
+    info.completionRate !== null && `completion rate ${Math.round(info.completionRate * 100)}%`,
+    info.medianMinutes !== null && `median time ${formatDuration(info.medianMinutes)}`,
+    info.lastCompletedAt && `last completed ${timeAgo(info.lastCompletedAt)}`,
+    counts.tests > 0 && `${counts.tests} test ${counts.tests === 1 ? "run" : "runs"} not counted`,
+  ].filter(Boolean);
+
   const status = el("span", { class: "pv-status", role: "status" });
-  panel.replaceChildren(
-    heading,
-    source,
+  body.replaceChildren(
     el(
-      "p",
-      { class: "pv-counts" },
-      counts.map(([n, label]) => el("span", { class: "pv-chip" }, `${n} ${label}`)),
+      "div",
+      { class: "pv-hero" },
+      el("span", { class: "pv-hero-value" }, String(counts.completed)),
+      el(
+        "div",
+        { class: "pv-hero-text" },
+        el("span", { class: "pv-hero-label" }, counts.completed === 1 ? "participant completed" : "participants completed"),
+        facts.length > 0 && el("span", { class: "pv-note" }, facts.join(" · ")),
+      ),
+    ),
+    el(
+      "div",
+      { class: "pv-tiles" },
+      tile(
+        "In progress",
+        counts.inProgress,
+        `Started, not finished, and active in the last ${info.inProgressMinutes} minutes`,
+        counts.inProgress > 0 ? "pv-live" : "",
+      ),
+      tile("Dropped out", counts.droppedOut, `Started but inactive for over ${info.inProgressMinutes} minutes`),
+      tile("Withdrew", counts.withdrawn, "Used the withdraw button; their data was deleted"),
+      tile("Failed", counts.failed, "JATOS ended the run, e.g. after a page reload"),
     ),
     el(
       "div",

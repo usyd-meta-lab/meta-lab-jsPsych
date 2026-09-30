@@ -47,9 +47,9 @@ See also the JATOS guide [Use Prolific](https://www.jatos.org/Use-Prolific.html)
 
 ## Getting the data out
 
-### From the preview timeline (easiest)
+### From the experiment dashboard (easiest)
 
-`npm run dev` can show a **Participant data** panel at the top of the timeline view, with counts (finished, incomplete, withdrawn, failed, test runs) and **Download CSV** / **Download NDJSON** buttons. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
+`npm run dev` opens the experiment dashboard. Its **Participants** section shows how many participants have completed (with completion rate, median time and when the last one finished), how many are in progress right now, dropped out, withdrew or failed, and has **Download CSV** / **Download NDJSON** buttons. It refreshes every minute while open. "In progress" means not finished and active in the last 5 minutes; after that a run counts as dropped out. Runs started from inside JATOS (your own tests) are left out of the counts. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
 
 To set it up once per computer:
 

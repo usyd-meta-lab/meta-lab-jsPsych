@@ -9,6 +9,7 @@
   --pv-accent-soft: #e6ecfb;
   --pv-warn: #8a4b00;
   --pv-warn-soft: #fff3e0;
+  --pv-good: #0ca30c;
   --pv-bar-h: 44px;
   --pv-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --pv-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
@@ -73,21 +74,50 @@
   font-size: 14px;
 }
 
-.pv-jatos {
-  margin: 0 0 20px;
-  padding: 14px 16px;
-  border: 1px solid var(--pv-line);
-  border-radius: 8px;
-  background: var(--pv-surface);
+.pv-section { display: grid; gap: 8px; margin-bottom: 28px; }
+.pv-section h2 { margin: 0; font-size: 17px; }
+.pv-section > .pv-note { margin: 0 0 4px; }
+.pv-section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.pv-section-head .pv-note { flex: 1; min-width: 0; max-width: none; font-size: 13px; }
+.pv .pv-small { padding: 3px 10px; font-size: 12px; }
+
+.pv-participants-body { display: grid; gap: 14px; }
+.pv-participants-body p { margin: 0; }
+.pv-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.pv-hero-value { font-size: 56px; line-height: 1; font-weight: 650; letter-spacing: -0.02em; }
+.pv-hero-text { display: grid; gap: 2px; min-width: 0; }
+.pv-hero-label { font-size: 16px; font-weight: 600; }
+.pv-hero-text .pv-note { font-size: 13px; }
+
+.pv-tiles {
   display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
-.pv-jatos h2 { margin: 0; font-size: 15px; }
-.pv-jatos p { margin: 0; }
-.pv-jatos .pv-actions { margin: 0; }
-.pv-jatos-note { font-size: 13px; color: var(--pv-muted); }
-.pv-counts { display: flex; flex-wrap: wrap; gap: 4px; }
-.pv-counts .pv-chip { font-size: 12px; color: var(--pv-ink); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .pv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.pv-tile {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--pv-line);
+  border-radius: 8px;
+  background: #fff;
+}
+.pv-tile-label { font-size: 12px; color: var(--pv-muted); }
+.pv-tile-value { font-size: 22px; font-weight: 600; line-height: 1.2; }
+.pv-live .pv-tile-label::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--pv-good);
+  vertical-align: 1px;
+}
+.pv-participants .pv-actions { margin: 0; }
 
 .pv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .pv-list .pv-list {
