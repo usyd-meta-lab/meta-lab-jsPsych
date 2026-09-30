@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:jatos": "vite build && node scripts/build-jatos.mjs",
+    "build:jatos": "node scripts/build-jatos.mjs --check && vite build && node scripts/build-jatos.mjs",
     "build:preview": "vite build --mode preview",
     "jatos:stop": "node scripts/jatos-local.mjs stop",
     "jatos": "node scripts/jatos-local.mjs start"
@@ -17,6 +17,7 @@
     "url": "git+https://github.com/usyd-meta-lab/meta-lab-jsPsych.git"
   },
   "dependencies": {
+    "@jspsych/extension-pipe": "^0.2.0",
     "@jspsych/plugin-html-keyboard-response": "^2.2.0",
     "jspsych": "^8.3.0"
   },

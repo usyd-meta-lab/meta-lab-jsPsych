@@ -296,8 +296,11 @@ async function importStudy(token) {
 const command = process.argv[2] ?? "start";
 try {
   mkdirSync(ROOT, { recursive: true });
+  const dataSaving = JSON.parse(readFileSync("study.config.json", "utf8")).dataSaving ?? "jatos";
   if (command === "stop") {
     stop();
+  } else if (dataSaving !== "jatos") {
+    throw new Error(`This study saves data with ${dataSaving} (study.config.json), not JATOS, so local JATOS isn't used. See docs/datapipe.md for testing.`);
   } else if (command === "start") {
     const appDir = await install();
     await start(appDir);

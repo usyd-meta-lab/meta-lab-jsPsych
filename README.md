@@ -29,6 +29,8 @@ To test the whole data path before the lab server exists, run `npm run jatos`. I
 
 Setup, Prolific, data export and local testing: see [docs/jatos.md](docs/jatos.md).
 
+Studies can save to [DataPipe](https://pipe.jspsych.org) instead: set `"dataSaving": "datapipe"` and the DataPipe experiment ID in `study.config.json`, then host `dist/` on any web host. See [docs/datapipe.md](docs/datapipe.md) for the differences.
+
 ## Designing an experiment with Claude
 
 Open the repo in Claude Code and describe the experiment you want. `CLAUDE.md` tells Claude how to build and preview it:
@@ -52,7 +54,7 @@ Open the repo in Claude Code and describe the experiment you want. `CLAUDE.md` t
 index.html            page shell
 src/main.js           entry point (participant run, or preview mode in dev)
 src/experiment.js     the experiment timeline: edit this
-src/data.js           saving data to JATOS (participant build only)
+src/data/             saving participant data: jatos.js or datapipe.js (participant build only)
 src/preview/          experiment dashboard (never shipped to participants)
 study.config.json     JATOS study settings (title, UUID, Prolific redirect)
 scripts/build-jatos.mjs  packages dist/ as a JATOS study archive

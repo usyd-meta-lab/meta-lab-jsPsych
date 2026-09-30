@@ -148,6 +148,9 @@ async function metadata(env, uuid) {
 
 async function summary(env) {
   const study = studyConfig();
+  // DataPipe has no API for reading data back: it lives with the storage
+  // provider chosen in the DataPipe dashboard.
+  if (study.dataSaving === "datapipe") return { configured: true, datapipe: true, title: study.title };
   if (!env.JATOS_URL || !env.JATOS_API_TOKEN) return { configured: false };
   const base = {
     configured: true,
@@ -171,6 +174,7 @@ const toIso = (ms) => (ms ? new Date(ms).toISOString() : null);
 
 async function exportData(env, format) {
   const study = studyConfig();
+  if (study.dataSaving === "datapipe") throw new Error("This study saves data with DataPipe; download it from your storage provider.");
   if (!env.JATOS_URL || !env.JATOS_API_TOKEN || !study.uuid) throw new Error("JATOS isn't set up for this study.");
 
   // Per-run details from JATOS, joined onto every trial row.

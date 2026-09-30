@@ -1,4 +1,5 @@
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { jatosDevData } from "./scripts/jatos-dev-data.js";
@@ -15,12 +16,25 @@ function experimentVersion() {
   }
 }
 
+// Where participant data goes: "jatos" or "datapipe" (study.config.json).
+function dataSaving() {
+  const { dataSaving = "jatos", withdrawButton } = JSON.parse(readFileSync("study.config.json", "utf8"));
+  if (!["jatos", "datapipe"].includes(dataSaving)) {
+    throw new Error(`study.config.json: dataSaving must be "jatos" or "datapipe", not "${dataSaving}".`);
+  }
+  if (dataSaving === "datapipe" && withdrawButton) {
+    console.warn("study.config.json: withdrawButton only works with JATOS, so it's ignored for DataPipe.");
+  }
+  return dataSaving;
+}
+
 export default defineConfig(({ mode }) => ({
   // Relative asset paths so the build works from any folder or host,
   // including a JATOS study assets folder.
   base: "./",
   define: {
     __EXPERIMENT_VERSION__: JSON.stringify(experimentVersion()),
+    __DATA_SAVING__: JSON.stringify(dataSaving()),
   },
   server: {
     // Claude Code Desktop passes PORT when it picks a free port (autoPort).

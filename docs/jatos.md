@@ -30,6 +30,8 @@ Edit `study.config.json`:
 | - | - |
 | `template` | `true` only in the template repo itself: its study UUID is then kept in `.jatos/` instead of being committed. **Set it to `false` (or delete it) when you start a new study from the template.** |
 | `title` | Study name shown in JATOS. |
+| `dataSaving` | `"jatos"` (default) or `"datapipe"`. See [datapipe.md](datapipe.md) for DataPipe. |
+| `datapipeExperimentId` | Only for DataPipe: the experiment ID from the DataPipe dashboard. |
 | `dirName` | Folder name for the study's files on the JATOS server. Letters, digits, `-` and `_` only. Must be unique on the server. |
 | `uuid` | Leave empty. The first `npm run build:jatos` fills it in. Commit it: re-importing an archive with the same UUID updates the existing JATOS study instead of creating a new one. **If you copy another study's folder to start a new study, clear this field**, or importing will overwrite the other study. |
 | `endRedirectUrl` | Where participants go after the data is saved, e.g. the Prolific completion URL `https://app.prolific.com/submissions/complete?cc=XXXXXXX`. Values from the study link can be inserted with square brackets, e.g. `[PROLIFIC_PID]`. Empty shows JATOS's own end page. |

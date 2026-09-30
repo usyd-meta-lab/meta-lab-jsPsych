@@ -1,5 +1,6 @@
-// Saving participant data to JATOS. Only the participant build uses this;
-// preview mode never loads JATOS and never saves.
+// Saving participant data to JATOS (study.config.json "dataSaving": "jatos").
+// Only the participant build uses this; preview mode never loads JATOS and
+// never saves.
 //
 // Data format: one JSON object per trial, one per line (NDJSON).
 // Each trial is appended as soon as it finishes, so partial data from
@@ -9,11 +10,14 @@
 // At the end the complete dataset is submitted again, replacing the
 // appended rows, so the stored result is always exactly jsPsych's data.
 
-import study from "../study.config.json";
+import { initJsPsych } from "jspsych";
+import study from "../../study.config.json";
+import { buildTimeline, options } from "../experiment.js";
+import { message, prolificColumns, showSaveFailed, showSaving } from "./common.js";
 
 /** Load jatos.js (served by JATOS next to index.html). Resolves to the
  *  `jatos` object, or null when the page is not being run through JATOS. */
-export function loadJatos() {
+function loadJatos() {
   return new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = "jatos.js";
@@ -24,12 +28,9 @@ export function loadJatos() {
 }
 
 /** Columns added to every trial: who the participant is and which build ran. */
-export function participantInfo(jatos) {
-  const params = jatos.urlQueryParameters ?? {};
+function participantInfo(jatos) {
   return {
-    prolific_pid: params.PROLIFIC_PID ?? null,
-    prolific_study_id: params.STUDY_ID ?? null,
-    prolific_session_id: params.SESSION_ID ?? null,
+    ...prolificColumns(jatos.urlQueryParameters ?? {}),
     jatos_study_result_id: jatos.studyResultId,
     jatos_worker_id: jatos.workerId,
     experiment_version: __EXPERIMENT_VERSION__,
@@ -43,7 +44,7 @@ let appending = false;
 let finished = false;
 
 /** Queue one finished trial and send it (with any other unsent trials). */
-export function saveTrial(jatos, row) {
+function saveTrial(jatos, row) {
   unsent.push(row);
   appendUnsent(jatos);
 }
@@ -65,7 +66,7 @@ async function appendUnsent(jatos) {
   }
 }
 
-export function addWithdrawButton(jatos) {
+function addWithdrawButton(jatos) {
   if (!study.withdrawButton) return;
   jatos.addAbortButton({
     text: "Withdraw",
@@ -75,50 +76,51 @@ export function addWithdrawButton(jatos) {
   });
 }
 
-function message(displayElement, ...paragraphs) {
-  const content = document.createElement("div");
-  content.className = "jspsych-content";
-  for (const text of paragraphs) {
-    const p = document.createElement("p");
-    p.textContent = text;
-    content.append(p);
-  }
-  displayElement.replaceChildren(content);
-  return content;
-}
-
 /**
  * Submit the complete dataset, then end the study in JATOS. JATOS then sends
  * the participant to the study's End Redirect URL (e.g. the Prolific
  * completion link) or shows its own end page.
  */
-export async function finishStudy(jatos, jsPsych) {
+async function finishStudy(jatos, jsPsych) {
   finished = true;
   const displayElement = jsPsych.getDisplayElement();
-  message(displayElement, "Saving your responses…", "Please don't close this page.");
+  showSaving(displayElement);
   try {
     await jatos.submitResultData(toNdjson(jsPsych.data.get().values()));
     jatos.endStudy();
   } catch (error) {
     jatos.log?.(`Final data submit failed: ${error}`);
-    const content = message(
-      displayElement,
-      "We couldn't save your responses. Please check your internet connection and try again.",
-      "Please don't close this page, or your responses will be lost.",
-    );
-    const retry = document.createElement("button");
-    retry.className = "jspsych-btn";
-    retry.textContent = "Try again";
-    retry.addEventListener("click", () => finishStudy(jatos, jsPsych));
-    content.append(retry);
+    showSaveFailed(displayElement, () => finishStudy(jatos, jsPsych));
   }
 }
 
 /** Shown when the participant build is opened without JATOS. */
-export function showNotInJatos() {
+function showNotInJatos() {
   message(
     document.body,
     "This experiment can't start because it wasn't opened through its study link.",
     "If you are a participant, please return to the study page and use the link provided there.",
   );
+}
+
+/** Run the experiment for a participant, saving to JATOS. */
+export async function run() {
+  const jatos = await loadJatos();
+  if (!jatos) {
+    showNotInJatos();
+    return;
+  }
+
+  const jsPsych = initJsPsych({
+    ...options,
+    on_data_update: (row) => {
+      options.on_data_update?.(row);
+      saveTrial(jatos, row);
+    },
+  });
+  jsPsych.data.addProperties(participantInfo(jatos));
+  addWithdrawButton(jatos);
+
+  await jsPsych.run(buildTimeline(jsPsych));
+  await finishStudy(jatos, jsPsych);
 }

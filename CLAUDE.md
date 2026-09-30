@@ -6,7 +6,7 @@ jsPsych v8 experiments for the USYD Meta Lab, installed from npm and bundled wit
 
 - `src/experiment.js`: the experiment. `buildTimeline(jsPsych)` returns the timeline; `options` are passed to `initJsPsych`. Edit this file when designing a study.
 - `src/main.js`: entry point. Runs the experiment for participants, or loads preview mode in dev and preview builds. Rarely needs changes.
-- `src/data.js`: saving data to JATOS. Only the participant build uses it.
+- `src/data/`: saving participant data, `jatos.js` or `datapipe.js`, chosen by `dataSaving` in `study.config.json`. Only the participant build uses them.
 - `src/preview/`: the experiment dashboard (participant numbers and the preview timeline). Never shipped to participants.
 - `study.config.json`: JATOS study settings. See `docs/jatos.md`.
 - `index.html`: page shell. Pins a light background so previews look the same in dark mode.
@@ -48,9 +48,9 @@ The dev server reloads on save and keeps the hash, so the edited section reruns 
 
 `npm run build` (what participants get) contains none of the preview code. Keep it that way: preview code only loads through the `import.meta.env` check in `src/main.js`.
 
-## Data saving (JATOS)
+## Data saving (JATOS or DataPipe)
 
-Participant data is saved to JATOS by `src/data.js`; `docs/jatos.md` has the full workflow. Rules:
+Participant data is saved to JATOS by default (`src/data/jatos.js`, see `docs/jatos.md`), or to DataPipe when `study.config.json` has `"dataSaving": "datapipe"` (`src/data/datapipe.js`, see `docs/datapipe.md`). Only the chosen module is built into the participant build. Rules:
 
 - Don't add other ways of saving or sending data (fetch calls, third-party services, `localSave`) unless the user asks.
 - Record what the analysis needs in trial `data` (e.g. `data: { condition: "incongruent", correct_key: "f" }`). Every jsPsych data row is saved; the Prolific and JATOS ID columns are added automatically.

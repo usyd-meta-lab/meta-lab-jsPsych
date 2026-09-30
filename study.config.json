@@ -2,6 +2,8 @@
   "template": true,
   "title": "Meta Lab Experiment",
   "dirName": "meta-lab-experiment",
+  "dataSaving": "jatos",
+  "datapipeExperimentId": "",
   "uuid": "",
   "endRedirectUrl": "",
   "withdrawButton": false

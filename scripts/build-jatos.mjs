@@ -19,6 +19,13 @@ const configPath = "study.config.json";
 const config = JSON.parse(readFileSync(configPath, "utf8"));
 const templateUuidPath = join(".jatos", "template-study-uuid");
 
+if ((config.dataSaving ?? "jatos") !== "jatos") {
+  console.error(`study.config.json has "dataSaving": "${config.dataSaving}", so there's nothing to import into JATOS. Use npm run build and host dist/ instead (see docs/datapipe.md).`);
+  process.exit(1);
+}
+// --check: only validate the config (run before building by npm run build:jatos).
+if (process.argv.includes("--check")) process.exit(0);
+
 if (config.template) {
   if (!existsSync(templateUuidPath)) {
     mkdirSync(".jatos", { recursive: true });

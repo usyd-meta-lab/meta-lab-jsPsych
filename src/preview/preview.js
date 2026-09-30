@@ -224,6 +224,24 @@ function tile(label, value, hint, extraClass = "") {
 }
 
 function renderParticipants(body, meta, refresh, info) {
+  if (info.datapipe) {
+    refresh.hidden = true;
+    meta.textContent = "DataPipe";
+    body.replaceChildren(
+      el(
+        "p",
+        { class: "pv-note" },
+        "This study saves data with DataPipe, which can't report participant numbers here. ",
+        "Check your experiment in the DataPipe dashboard and the data files in your storage provider (see docs/datapipe.md).",
+      ),
+      el(
+        "div",
+        { class: "pv-actions" },
+        el("a", { class: "pv-button", href: "https://pipe.jspsych.org", target: "_blank", rel: "noopener" }, "Open DataPipe"),
+      ),
+    );
+    return;
+  }
   if (!info.configured) {
     refresh.hidden = true;
     body.replaceChildren(
