@@ -1,0 +1,55 @@
+{
+  "name": "@usyd-meta-lab/jspsych-kit",
+  "version": "0.1.0",
+  "private": true,
+  "description": "USYD Meta Lab jsPsych kit: experiment dashboard, data saving, standard blocks and build tools for jsPsych v8 experiments",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./main": "./src/main.js",
+    "./vite": "./vite.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "jspsych-kit": "bin/jspsych-kit.mjs"
+  },
+  "files": [
+    "bin",
+    "claude",
+    "docs",
+    "scripts",
+    "src",
+    "template",
+    "!template/node_modules",
+    "!template/dist",
+    "!template/preview",
+    "!template/jatos",
+    "!template/.jatos",
+    "!template/package-lock.json",
+    "vite.js"
+  ],
+  "scripts": {
+    "setup": "npm install && npm install --prefix template",
+    "dev": "npm run dev --prefix template",
+    "build": "npm run build --prefix template",
+    "build:preview": "npm run build:preview --prefix template",
+    "build:jatos": "npm run build:jatos --prefix template"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usyd-meta-lab/meta-lab-jsPsych.git"
+  },
+  "dependencies": {
+    "@jspsych/extension-pipe": "^0.2.0",
+    "@jspsych/plugin-browser-check": "^2.1.0",
+    "@jspsych/plugin-fullscreen": "^2.1.0",
+    "@jspsych/plugin-html-button-response": "^2.1.0",
+    "@jspsych/plugin-html-keyboard-response": "^2.2.0",
+    "@jspsych/plugin-preload": "^2.1.0",
+    "@jspsych/plugin-survey-html-form": "^2.1.0",
+    "fflate": "^0.8.3",
+    "jspsych": "^8.3.0",
+    "vite": "^8.3.1",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

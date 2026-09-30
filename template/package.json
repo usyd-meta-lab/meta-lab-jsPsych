@@ -1,0 +1,18 @@
+{
+  "name": "meta-lab-experiment",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "jspsych-kit dev",
+    "build": "jspsych-kit build",
+    "build:preview": "jspsych-kit build --preview",
+    "build:jatos": "jspsych-kit build-jatos",
+    "jatos": "jspsych-kit jatos start",
+    "jatos:stop": "jspsych-kit jatos stop"
+  },
+  "dependencies": {
+    "@jspsych/plugin-html-keyboard-response": "^2.2.0",
+    "@usyd-meta-lab/jspsych-kit": "file:.."
+  }
+}

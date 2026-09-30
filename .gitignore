@@ -1,0 +1,15 @@
+node_modules/
+/dist/
+/preview/
+.DS_Store
+/jatos/
+/.jatos/
+.env.local
+.env.*.local
+
+# Starter experiment (built and installed while working on the kit)
+/template/dist/
+/template/preview/
+/template/jatos/
+/template/.jatos/
+/template/package-lock.json

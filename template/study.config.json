@@ -1,0 +1,13 @@
+{
+  "template": true,
+  "title": "Meta Lab Experiment",
+  "dirName": "meta-lab-experiment",
+  "recruitment": "prolific",
+  "minutes": 10,
+  "devices": ["computer"],
+  "dataSaving": "jatos",
+  "datapipeExperimentId": "",
+  "uuid": "",
+  "endRedirectUrl": "",
+  "withdrawButton": false
+}
