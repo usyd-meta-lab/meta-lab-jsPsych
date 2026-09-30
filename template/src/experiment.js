@@ -1,9 +1,6 @@
 import htmlKeyboardResponse from "@jspsych/plugin-html-keyboard-response";
-import { consent } from "./blocks/consent.js";
-import { debrief } from "./blocks/debrief.js";
-import { demographics } from "./blocks/demographics.js";
-import { deviceCheck, fullscreen } from "./blocks/device.js";
-import { preload } from "./blocks/preload.js";
+// The lab's standard blocks: see the kit's CLAUDE.md for what each one does.
+import { consent, debrief, demographics, deviceCheck, fullscreen, preload } from "@usyd-meta-lab/jspsych-kit";
 
 /** Extra options for initJsPsych, used by participant runs and previews. */
 export const options = {};

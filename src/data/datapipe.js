@@ -14,8 +14,8 @@
 
 import PipeExtension from "@jspsych/extension-pipe";
 import { initJsPsych } from "jspsych";
-import study from "../../study.config.json";
-import { buildTimeline, options } from "../experiment.js";
+import study from "/study.config.json";
+import { buildTimeline, options } from "/src/experiment.js";
 import { exitFullscreen } from "../blocks/device.js";
 import { showStopped, stoppedReason } from "../blocks/stop.js";
 import { endRedirectUrl, participantColumns, participantId } from "../recruitment.js";
@@ -113,6 +113,7 @@ export async function run() {
     ...participantColumns(study, params),
     datapipe_file: filename,
     experiment_version: __EXPERIMENT_VERSION__,
+    kit_version: __KIT_VERSION__,
   });
 
   // The extension saves the complete data before run() returns. Its client

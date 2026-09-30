@@ -12,7 +12,7 @@
 import { initJsPsych } from "jspsych";
 import { exitFullscreen } from "../blocks/device.js";
 import { stopMessage, stoppedReason } from "../blocks/stop.js";
-import { buildTimeline, options } from "../experiment.js";
+import { buildTimeline, options } from "/src/experiment.js";
 import {
   describeTimeline,
   findItem,

@@ -1,5 +1,15 @@
+// The kit's Vite setup. An experiment's vite.config.js is one line:
+//
+//   export { default } from "@usyd-meta-lab/jspsych-kit/vite";
+//
+// Paths without "./" (study.config.json, dist/, .env.local) are the
+// experiment's, since Vite and the kit's commands run in the experiment's
+// folder. The kit's own files are found relative to this one.
+
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { jatosDevData } from "./scripts/jatos-dev-data.js";
@@ -7,12 +17,15 @@ import { stimuliCheck } from "./scripts/stimuli-check.js";
 import { devicesOf } from "./src/devices.js";
 import { recruitmentOf, recruitmentProblems } from "./src/recruitment.js";
 
+const KIT_DIR = dirname(fileURLToPath(import.meta.url));
+const kit = JSON.parse(readFileSync(`${KIT_DIR}/package.json`, "utf8"));
+
 // Git commit of this build, recorded in every data row. "-dirty" means the
 // build included uncommitted changes.
 function experimentVersion() {
   try {
-    const commit = execSync("git rev-parse --short HEAD").toString().trim();
-    const dirty = execSync("git status --porcelain").toString().trim() !== "";
+    const commit = execSync("git rev-parse --short HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    const dirty = execSync("git status --porcelain", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim() !== "";
     return dirty ? `${commit}-dirty` : commit;
   } catch {
     return "unknown";
@@ -44,17 +57,29 @@ export default defineConfig(({ command, mode }) => ({
   base: "./",
   define: {
     __EXPERIMENT_VERSION__: JSON.stringify(experimentVersion()),
+    __KIT_VERSION__: JSON.stringify(kit.version),
     __DATA_SAVING__: JSON.stringify(dataSaving(command, mode)),
   },
+  resolve: {
+    // One jsPsych for the kit's blocks and the experiment's own plugins.
+    dedupe: ["jspsych"],
+  },
+  // The kit imports the experiment's files ("/src/experiment.js",
+  // "/study.config.json", "/src/stimuli/**"), so Vite must process its
+  // source instead of pre-bundling it like other packages.
+  optimizeDeps: { exclude: [kit.name] },
   server: {
     // Claude Code Desktop passes PORT when it picks a free port (autoPort).
     port: Number(process.env.PORT) || 5173,
     strictPort: true,
+    // Serve the kit's files even when it's linked from outside the
+    // experiment's folder (the template in the kit's own repo).
+    fs: { allow: [process.cwd(), KIT_DIR] },
   },
   // `npm run build:preview` inlines all JS and CSS into one HTML file
   // (preview/index.html) that can be published as a Claude artifact.
-  // jatosDevData only runs on the dev server: it lets the preview timeline
-  // download real participant data from JATOS (see docs/jatos.md).
+  // jatosDevData only runs on the dev server: it lets the dashboard show
+  // participant numbers and download data from JATOS (see docs/jatos.md).
   plugins: [stimuliCheck(), ...(mode === "preview" ? [viteSingleFile()] : [jatosDevData()])],
   build: {
     outDir: mode === "preview" ? "preview" : "dist",

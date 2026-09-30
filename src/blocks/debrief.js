@@ -1,5 +1,5 @@
 import htmlButtonResponse from "@jspsych/plugin-html-button-response";
-import study from "../../study.config.json";
+import study from "/study.config.json";
 import { recruitmentOf } from "../recruitment.js";
 import logoUrl from "./assets/usyd-logo.png";
 // Same layout as the Participant Information Statement.

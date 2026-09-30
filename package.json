@@ -1,16 +1,33 @@
 {
-  "name": "meta-lab-jspsych",
+  "name": "@usyd-meta-lab/jspsych-kit",
   "version": "0.1.0",
   "private": true,
-  "description": "USYD Meta Lab jsPsych v8 experiment template",
+  "description": "USYD Meta Lab jsPsych kit: experiment dashboard, data saving, standard blocks and build tools for jsPsych v8 experiments",
   "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./main": "./src/main.js",
+    "./vite": "./vite.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "jspsych-kit": "bin/jspsych-kit.mjs"
+  },
+  "files": [
+    "bin",
+    "claude",
+    "docs",
+    "scripts",
+    "src",
+    "template",
+    "vite.js"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "build:jatos": "node scripts/build-jatos.mjs --check && vite build && node scripts/build-jatos.mjs",
-    "build:preview": "vite build --mode preview",
-    "jatos:stop": "node scripts/jatos-local.mjs stop",
-    "jatos": "node scripts/jatos-local.mjs start"
+    "setup": "npm install && npm install --prefix template",
+    "dev": "npm run dev --prefix template",
+    "build": "npm run build --prefix template",
+    "build:preview": "npm run build:preview --prefix template",
+    "build:jatos": "npm run build:jatos --prefix template"
   },
   "repository": {
     "type": "git",
@@ -24,10 +41,8 @@
     "@jspsych/plugin-html-keyboard-response": "^2.2.0",
     "@jspsych/plugin-preload": "^2.1.0",
     "@jspsych/plugin-survey-html-form": "^2.1.0",
-    "jspsych": "^8.3.0"
-  },
-  "devDependencies": {
     "fflate": "^0.8.3",
+    "jspsych": "^8.3.0",
     "vite": "^8.3.1",
     "vite-plugin-singlefile": "^2.3.3"
   }

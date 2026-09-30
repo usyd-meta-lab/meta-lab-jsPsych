@@ -12,9 +12,13 @@
 
 import { execFileSync, spawn } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, openSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { unzipSync } from "fflate";
 import { recruitmentOf, withParams } from "../src/recruitment.js";
+
+// The kit's own files; everything else is in the experiment's folder.
+const KIT_DIR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 const JATOS_VERSION = "3.11.3";
 const PORT = 9000;
@@ -268,8 +272,11 @@ async function ensureToken() {
 
 async function importStudy(token) {
   log("Building the experiment…");
-  execFileSync(process.execPath, [resolve("node_modules/vite/bin/vite.js"), "build", "--logLevel", "warn"], { stdio: "inherit" });
-  execFileSync(process.execPath, [resolve("scripts/build-jatos.mjs")], {
+  execFileSync(process.execPath, [join(KIT_DIR, "bin", "jspsych-kit.mjs"), "build"], {
+    stdio: "inherit",
+    env: { ...process.env, KIT_LOG_LEVEL: "warn" },
+  });
+  execFileSync(process.execPath, [join(KIT_DIR, "scripts", "build-jatos.mjs")], {
     stdio: "inherit",
     env: { ...process.env, JATOS_LOCAL_IMPORT: "1" },
   });

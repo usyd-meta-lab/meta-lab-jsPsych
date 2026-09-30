@@ -11,8 +11,8 @@
 // appended rows, so the stored result is always exactly jsPsych's data.
 
 import { initJsPsych } from "jspsych";
-import study from "../../study.config.json";
-import { buildTimeline, options } from "../experiment.js";
+import study from "/study.config.json";
+import { buildTimeline, options } from "/src/experiment.js";
 import { exitFullscreen } from "../blocks/device.js";
 import { showStopped, stoppedReason } from "../blocks/stop.js";
 import { participantColumns } from "../recruitment.js";
@@ -37,6 +37,7 @@ function participantInfo(jatos) {
     jatos_study_result_id: jatos.studyResultId,
     jatos_worker_id: jatos.workerId,
     experiment_version: __EXPERIMENT_VERSION__,
+    kit_version: __KIT_VERSION__,
   };
 }
 

@@ -236,6 +236,7 @@ const FIRST_COLUMNS = [
   "jatos_start_time",
   "jatos_end_time",
   "experiment_version",
+  "kit_version",
 ];
 
 function toCsv(rows) {

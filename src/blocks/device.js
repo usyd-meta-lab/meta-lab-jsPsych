@@ -1,6 +1,6 @@
 import browserCheck from "@jspsych/plugin-browser-check";
 import fullscreenPlugin from "@jspsych/plugin-fullscreen";
-import study from "../../study.config.json";
+import study from "/study.config.json";
 import { deviceType, devicesOf } from "../devices.js";
 import { stopMessage } from "./stop.js";
 

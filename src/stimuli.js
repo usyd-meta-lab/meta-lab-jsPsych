@@ -13,12 +13,12 @@ const IMAGE = /\.(png|jpe?g|gif|webp|avif|svg|bmp)$/i;
 const AUDIO = /\.(mp3|wav|ogg|m4a|aac|flac)$/i;
 const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
 
-// Keys look like "./stimuli/faces/f1.png"; values are the bundled URLs.
+// Keys look like "/src/stimuli/faces/f1.png"; values are the bundled URLs.
 const found = import.meta.glob(
-  "./stimuli/**/*.{png,jpg,jpeg,gif,webp,avif,svg,bmp,mp3,wav,ogg,m4a,aac,flac,mp4,webm,mov,m4v,PNG,JPG,JPEG,GIF,WEBP,SVG,MP3,WAV,OGG,M4A,MP4,WEBM,MOV}",
+  "/src/stimuli/**/*.{png,jpg,jpeg,gif,webp,avif,svg,bmp,mp3,wav,ogg,m4a,aac,flac,mp4,webm,mov,m4v,PNG,JPG,JPEG,GIF,WEBP,SVG,MP3,WAV,OGG,M4A,MP4,WEBM,MOV}",
   { eager: true, query: "?url", import: "default" },
 );
-const files = Object.fromEntries(Object.entries(found).map(([path, url]) => [path.replace("./stimuli/", ""), url]));
+const files = Object.fromEntries(Object.entries(found).map(([path, url]) => [path.replace("/src/stimuli/", ""), url]));
 const names = Object.keys(files).sort();
 
 /** URL of a file in src/stimuli/, by its name there, e.g. "cat.png" or "faces/f1.png". */

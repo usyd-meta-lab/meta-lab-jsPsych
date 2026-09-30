@@ -4,7 +4,7 @@
 // modules then show the matching message, save what was recorded, and end
 // without the completion redirect, so the participant isn't paid or credited.
 
-import study from "../../study.config.json";
+import study from "/study.config.json";
 import { describeDevices, devicesOf } from "../devices.js";
 import { recruitmentOf } from "../recruitment.js";
 
