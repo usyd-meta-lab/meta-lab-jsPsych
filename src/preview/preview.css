@@ -1,0 +1,176 @@
+/* Preview mode UI. Layout: a single reading column of numbered timeline
+   rows, with a slim bar above the running experiment. */
+.pv {
+  --pv-ink: #1d2433;
+  --pv-muted: #5d6679;
+  --pv-line: #d9dde6;
+  --pv-surface: #f4f6fa;
+  --pv-accent: #2f5bd3;
+  --pv-accent-soft: #e6ecfb;
+  --pv-warn: #8a4b00;
+  --pv-warn-soft: #fff3e0;
+  --pv-bar-h: 44px;
+  --pv-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pv-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-family: var(--pv-font);
+  color: var(--pv-ink);
+}
+
+.pv button {
+  font: inherit;
+  font-size: 13px;
+  color: var(--pv-ink);
+  background: #fff;
+  border: 1px solid var(--pv-line);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.pv button:hover { border-color: var(--pv-accent); color: var(--pv-accent); }
+.pv button:focus-visible { outline: 2px solid var(--pv-accent); outline-offset: 2px; }
+.pv button.pv-primary {
+  background: var(--pv-accent);
+  border-color: var(--pv-accent);
+  color: #fff;
+  font-weight: 600;
+}
+.pv button.pv-primary:hover { filter: brightness(1.1); color: #fff; }
+
+/* Timeline view */
+.pv-page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+  text-align: left;
+}
+.pv-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--pv-line);
+  margin-bottom: 20px;
+}
+.pv-header > div { min-width: 0; flex: 1 1 320px; }
+.pv-eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pv-accent);
+}
+.pv h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.2; text-wrap: balance; }
+.pv-note { margin: 0; font-size: 14px; line-height: 1.5; color: var(--pv-muted); max-width: 60ch; }
+.pv-warning {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: var(--pv-warn-soft);
+  color: var(--pv-warn);
+  font-size: 14px;
+}
+
+.pv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.pv-list .pv-list {
+  margin: 6px 0 4px 20px;
+  padding-left: 12px;
+  border-left: 2px solid var(--pv-line);
+}
+.pv-root { gap: 10px; }
+
+.pv-row { display: flex; gap: 8px; align-items: stretch; }
+.pv .pv-jump {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  text-align: left;
+  padding: 10px 12px;
+}
+.pv-block > .pv-row .pv-jump { background: var(--pv-surface); }
+.pv-block > .pv-row .pv-label { font-weight: 600; }
+.pv-num {
+  font-family: var(--pv-mono);
+  font-size: 12px;
+  color: var(--pv-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5em;
+}
+.pv-label { font-size: 15px; overflow-wrap: anywhere; }
+.pv-details { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+.pv-chip {
+  font-size: 11px;
+  color: var(--pv-muted);
+  background: #fff;
+  border: 1px solid var(--pv-line);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+.pv .pv-jump:hover .pv-num { color: var(--pv-accent); }
+.pv .pv-only { flex: none; color: var(--pv-muted); }
+
+/* Run view */
+.pv-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  height: var(--pv-bar-h);
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--pv-surface);
+  border-bottom: 1px solid var(--pv-line);
+  font-size: 13px;
+}
+.pv .pv-bar button { padding: 4px 10px; }
+.pv-where {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.pv-crumbs { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.pv-mode { color: var(--pv-muted); }
+.pv-stage {
+  position: fixed;
+  top: var(--pv-bar-h);
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.pv-done {
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 32px 16px;
+  box-sizing: border-box;
+  text-align: left;
+}
+.pv-done h2 { margin: 0 0 4px; font-size: 20px; }
+.pv-done p { margin: 0 0 16px; color: var(--pv-muted); font-size: 14px; }
+.pv-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pv-data {
+  margin: 0;
+  padding: 12px;
+  background: var(--pv-surface);
+  border: 1px solid var(--pv-line);
+  border-radius: 6px;
+  font-family: var(--pv-mono);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  max-height: 60vh;
+}
