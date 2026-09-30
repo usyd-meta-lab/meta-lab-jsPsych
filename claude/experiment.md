@@ -22,11 +22,14 @@ When the user starts a new study (a fresh copy made with `jspsych-kit new`, or s
 4. **How long the study takes, in minutes.** Set `"minutes"`, then tell them the SONA credit or Prolific payment it works out to.
 5. **Which devices participants may use:** computers, tablets and/or phones. Set `"devices"`, e.g. `["computer"]`. For Prolific, tell them to set Prolific's Device compatibility to match.
 6. **The design and what will be analysed:** the conditions, whether each is between or within participants (and how participants are assigned: at random unless they say otherwise), the key measures, and any exclusion rules (attention checks, minimum accuracy, too-fast responses). Record in each trial's `data` everything the analysis needs, e.g. `condition`, `correct`, the correct response, so every data row can be analysed on its own. Add attention checks as named trials.
-7. **Where data is saved:** JATOS (the default) or DataPipe. For DataPipe, set `"dataSaving": "datapipe"`, ask for the DataPipe experiment ID for `datapipeExperimentId`, and point them to `KIT/docs/datapipe.md` for turning on data collection and hosting.
-
+7. **Where data is saved:** JATOS (the default) or DataPipe. If they choose DataPipe, ask in the same message for their **DataPipe experiment ID** (at https://pipe.jspsych.org: sign in, create an experiment, copy its ID) and set `"dataSaving": "datapipe"` and `"datapipeExperimentId"`. A DataPipe study saves nothing without it. If they don't have one yet, give them those steps, carry on, and ask again before launch (the dashboard marks it "ID not set"). Point them to `KIT/docs/datapipe.md` for turning on data collection and hosting.
 8. **Open the preview after each change?** Recommend yes: the experiment dashboard opens (in the Browser pane, or as an artifact link in cloud sessions) so they can click through what was just built. If they say no, still check your changes the same way, but don't open the Browser pane or publish an artifact until they ask; tell them how to open it themselves (`npm run dev`).
 
-Afterwards, summarise the setup back to them (name, protocol, pool, length and pay or credit, devices, design, data saving, preview) before building.
+Then, in this order:
+
+1. Summarise the setup back to them (name, protocol, pool, length and pay or credit, devices, design, data saving, preview) and fill in `study.config.json`.
+2. **If they said yes to the preview, open it now, before writing any experiment code:** start the `experiment` server and show the dashboard in the Browser pane (in a cloud session, build and publish the artifact instead; see [Previewing the experiment](#previewing-the-experiment-always-do-this-after-changing-it)). Tell them it's open, and that it updates as you build.
+3. Build the experiment. After each change, check it and point the Browser pane at the part you changed (`#only-<n>`), so they see each step as it lands, not only at the end.
 
 ## Layout
 

@@ -48,7 +48,13 @@ function items() {
     caption: "Devices",
   });
   const saving = study.dataSaving === "datapipe" ? "datapipe" : "jatos";
-  list.push({ icons: [saving], value: saving === "datapipe" ? "DataPipe" : "JATOS", caption: "Data saved to" });
+  const noPipeId = saving === "datapipe" && !String(study.datapipeExperimentId ?? "").trim();
+  list.push({
+    icons: [saving],
+    value: saving === "datapipe" ? "DataPipe" : "JATOS",
+    caption: noPipeId ? "ID not set" : "Data saved to",
+    missing: noPipeId,
+  });
   return list;
 }
 

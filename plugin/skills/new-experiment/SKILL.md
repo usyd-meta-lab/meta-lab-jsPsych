@@ -25,6 +25,6 @@ If the current folder has a `study.config.json` and `node_modules/@usyd-meta-lab
 
 3. **Work in the new folder.** If this session can switch its working folder, switch to it; otherwise run every command with the new folder as the working directory, and tell the user to open that folder in Claude Code next time (desktop app: open folder; terminal: `cd <folder> && claude`). The folder's CLAUDE.md loads the kit's instructions.
 
-4. **Set it up.** Read the new folder's CLAUDE.md (and the kit instructions it imports) and follow its "Starting a new study" section: ask the setup questions together, in plain language, summarise the answers back, then build the experiment and show the preview.
+4. **Set it up.** Read the new folder's CLAUDE.md (and the kit instructions it imports) and follow its "Starting a new study" section: ask the setup questions together, in plain language (for DataPipe, ask for the DataPipe experiment ID in the same message), and summarise the answers back. If they want the preview, open it **before** writing any experiment code, then build with it open so they watch each part appear.
 
 5. **First commit.** Once the first version runs, commit it (`git add -A && git commit -m "Start <Study name>"`) so every data row's `experiment_version` points at real code. Don't create a GitHub repository or push unless the user asks.

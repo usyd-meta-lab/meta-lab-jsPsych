@@ -1,6 +1,6 @@
 {
   "name": "@usyd-meta-lab/jspsych-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "USYD Meta Lab jsPsych kit: experiment dashboard, data saving, standard blocks and build tools for jsPsych v8 experiments",
   "type": "module",
