@@ -58,6 +58,14 @@ Participant data is saved to JATOS by `src/data.js`; `docs/jatos.md` has the ful
 - Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it.
 - Preview mode must never load JATOS or save data.
 
+## Participant data (privacy)
+
+In `npm run dev` the timeline view has a Participant data panel (`scripts/jatos-dev-data.js`) that downloads real participant data from JATOS, including Prolific IDs.
+
+- Never click its download buttons, request `/__jatos/data.csv` or `/__jatos/data.ndjson`, or open downloaded participant data files unless the user asks for that in the current conversation. Reading the panel's counts is fine.
+- Never ask for, print, or write the JATOS API token anywhere except the user's own `.env.local`, and never commit `.env.local`.
+- Keep the panel dev-server only: nothing under `/__jatos` may be added to the artifact preview or participant build.
+
 ## Previewing the experiment (always do this after changing it)
 
 After every change to the experiment, show the user a working preview, and check the parts you changed by jumping to them with `#only-<n>` rather than walking through the whole experiment. Which route to use depends on where this session runs.

@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import { defineConfig } from "vite";
 import { viteSingleFile } from "vite-plugin-singlefile";
+import { jatosDevData } from "./scripts/jatos-dev-data.js";
 
 // Git commit of this build, recorded in every data row. "-dirty" means the
 // build included uncommitted changes.
@@ -28,7 +29,9 @@ export default defineConfig(({ mode }) => ({
   },
   // `npm run build:preview` inlines all JS and CSS into one HTML file
   // (preview/index.html) that can be published as a Claude artifact.
-  plugins: mode === "preview" ? [viteSingleFile()] : [],
+  // jatosDevData only runs on the dev server: it lets the preview timeline
+  // download real participant data from JATOS (see docs/jatos.md).
+  plugins: mode === "preview" ? [viteSingleFile()] : [jatosDevData()],
   build: {
     outDir: mode === "preview" ? "preview" : "dist",
   },

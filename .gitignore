@@ -3,3 +3,5 @@ node_modules/
 /preview/
 .DS_Store
 /jatos/
+.env.local
+.env.*.local

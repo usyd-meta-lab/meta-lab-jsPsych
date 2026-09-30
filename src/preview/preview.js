@@ -149,6 +149,9 @@ function renderTimeline(invalidHash) {
           "Run full experiment",
         ),
       ),
+      // Real participant data from JATOS: dev server only (see
+      // scripts/jatos-dev-data.js). Never in the artifact or participant build.
+      import.meta.env.DEV && participantDataPanel(),
       invalidHash &&
         el(
           "p",
@@ -157,6 +160,83 @@ function renderTimeline(invalidHash) {
         ),
       el("ol", { class: "pv-list pv-root" }, items.map(renderItem)),
     ),
+  );
+}
+
+// -------------------------------------------------------- participant data
+
+function participantDataPanel() {
+  const panel = el("section", { class: "pv-jatos", "aria-label": "Participant data" });
+  fetch("/__jatos/summary")
+    .then((response) => response.json())
+    .then((info) => renderParticipantData(panel, info))
+    .catch(() => panel.remove());
+  return panel;
+}
+
+function renderParticipantData(panel, info) {
+  const heading = el("h2", {}, "Participant data");
+  if (!info.configured) {
+    panel.replaceChildren(
+      heading,
+      el(
+        "p",
+        { class: "pv-jatos-note" },
+        "To download results from JATOS here, add JATOS_URL and JATOS_API_TOKEN to .env.local (see docs/jatos.md).",
+      ),
+    );
+    return;
+  }
+  const source = el("p", { class: "pv-jatos-note" }, `${info.title} on ${info.server}`);
+  if (info.error) {
+    panel.replaceChildren(heading, source, el("p", { class: "pv-warning" }, info.error));
+    return;
+  }
+  const { finished, incomplete, withdrawn, failed, tests } = info.counts;
+  const counts = [
+    [finished, "finished"],
+    [incomplete, "incomplete"],
+    [withdrawn, "withdrawn"],
+    [failed, "failed"],
+    [tests, tests === 1 ? "test run" : "test runs"],
+  ];
+  const status = el("span", { class: "pv-status", role: "status" });
+  panel.replaceChildren(
+    heading,
+    source,
+    el(
+      "p",
+      { class: "pv-counts" },
+      counts.map(([n, label]) => el("span", { class: "pv-chip" }, `${n} ${label}`)),
+    ),
+    el(
+      "div",
+      { class: "pv-actions" },
+      jatosDownloadButton("Download CSV", "/__jatos/data.csv", status),
+      jatosDownloadButton("Download NDJSON", "/__jatos/data.ndjson", status),
+      status,
+    ),
+  );
+}
+
+function jatosDownloadButton(label, url, status) {
+  return el(
+    "button",
+    {
+      type: "button",
+      onclick: async () => {
+        status.textContent = "Downloading from JATOS…";
+        try {
+          const response = await fetch(url);
+          if (!response.ok) throw new Error(await response.text());
+          const filename = /filename="([^"]+)"/.exec(response.headers.get("Content-Disposition"))?.[1];
+          status.textContent = await saveFile(filename ?? "jatos_data.txt", await response.text());
+        } catch (error) {
+          status.textContent = `Download failed: ${error.message}`;
+        }
+      },
+    },
+    label,
   );
 }
 

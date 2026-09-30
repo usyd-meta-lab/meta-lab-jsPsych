@@ -47,6 +47,28 @@ See also the JATOS guide [Use Prolific](https://www.jatos.org/Use-Prolific.html)
 
 ## Getting the data out
 
+### From the preview timeline (easiest)
+
+`npm run dev` can show a **Participant data** panel at the top of the timeline view, with counts (finished, incomplete, withdrawn, failed, test runs) and **Download CSV** / **Download NDJSON** buttons. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
+
+To set it up once per computer:
+
+1. In JATOS, create a user for data access (the normal "User" role, not admin) and add it as a member of your studies.
+2. Signed in as that user, create an API token (user menu, **API tokens**).
+3. Copy `.env.example` to `.env.local` in the project folder and fill in `JATOS_URL` and `JATOS_API_TOKEN`. `.env.local` is never committed.
+4. Restart `npm run dev`.
+
+How it stays safe:
+
+- The token stays in the dev server on your machine. The browser only talks to the local dev server, which refuses requests from other computers even if started with `--host`.
+- The panel only exists in `npm run dev`. It is not in the artifact preview or the participant build.
+- A JATOS token has all the permissions of its user (including deleting results), so keep it out of chat, email and git.
+- In a Claude Code cloud session the dev server runs in the cloud, so this panel is only meant for local use. If the Claude desktop Browser pane doesn't save the file, open http://localhost:5173 in your normal browser.
+
+`jatos_worker_type` is `Jatos` for runs started from inside JATOS (your own test runs) and `GeneralSingle` / `GeneralMultiple` for participants. Rows from dropouts have `jatos_study_state` other than `FINISHED`.
+
+### From JATOS directly
+
 In JATOS, open the study's **Results**, select the results, and export the data. Each participant's result is newline-delimited JSON: one trial per line.
 
 ```r

@@ -23,6 +23,8 @@ Name your blocks and trials with a `name` property in `src/experiment.js` so the
 
 Participants run the experiment on the lab's [JATOS](https://www.jatos.org) server, which also stores the data. `npm run build:jatos` packages the experiment as a `.jzip` file to import into JATOS. Each trial is saved as it finishes, Prolific IDs are recorded automatically, and participants are redirected to Prolific only once their data is saved.
 
+With a JATOS API token in `.env.local`, the timeline view in `npm run dev` also shows how many participants have finished and lets you download all participant data as CSV.
+
 Setup, Prolific, data export and local testing: see [docs/jatos.md](docs/jatos.md).
 
 ## Designing an experiment with Claude
@@ -52,6 +54,8 @@ src/data.js           saving data to JATOS (participant build only)
 src/preview/          timeline view for previews (never shipped to participants)
 study.config.json     JATOS study settings (title, UUID, Prolific redirect)
 scripts/build-jatos.mjs  packages dist/ as a JATOS study archive
+scripts/jatos-dev-data.js  dev-server endpoint for downloading participant data
+.env.example          template for .env.local (JATOS URL and API token)
 docker-compose.yml    local JATOS server for testing
 vite.config.js        dev server and build config
 .claude/launch.json   Browser pane preview config for Claude Code desktop
