@@ -56,6 +56,7 @@ Participant data is saved to JATOS by default (`src/data/jatos.js`, see `docs/ja
 - Record what the analysis needs in trial `data` (e.g. `data: { condition: "incongruent", correct_key: "f" }`). Every jsPsych data row is saved; the Prolific and JATOS ID columns are added automatically.
 - Keep the experiment's own `on_finish` free of redirects or `jatos` calls: `main.js` saves the data and ends the study after the timeline finishes.
 - Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it. Leave `"template": true` alone in the template repo; when the user starts a new study from the template, set it to `false` along with a new `title` and `dirName`.
+- When the user starts a new study from the template, ask whether to save data to JATOS (the default) or DataPipe before building it, unless they've already said. For DataPipe, set `"dataSaving": "datapipe"`, ask for the DataPipe experiment ID for `datapipeExperimentId`, and point them to `docs/datapipe.md` for turning on data collection and hosting.
 - To test saving end to end on the user's computer, use local JATOS: `npm run jatos` (re-run after changes), then the dashboard's **Run as participant** button or the printed study link. It doesn't work in cloud sessions.
 - Preview mode must never load JATOS or save data.
 
