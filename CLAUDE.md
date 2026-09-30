@@ -2,6 +2,22 @@
 
 jsPsych v8 experiments for the USYD Meta Lab, installed from npm and bundled with Vite.
 
+## Starting a new study
+
+When the user starts a new study from the template, ask these questions before building anything, skipping any they've already answered. Ask them together in one message, in plain language (the user may not code), then set everything up from the answers.
+
+1. **Study name.** Set `title` (shown in the browser tab and JATOS) and a matching `dirName` (letters, digits, `-` and `_`) in `study.config.json`, and set `"template": false`.
+2. **Ethics protocol.** Is the study covered by HREC 2022/796? If yes, use `consent()` and `debrief()` from `src/blocks/`. If not, ask for the approved Participant Information Statement and debrief before building, and add them as new blocks in `src/blocks/` word for word (see [Standard lab blocks](#standard-lab-blocks)).
+3. **Where participants come from:** Prolific, SONA or in the lab. Set `"recruitment"` and ask for the completion URL (see [Recruitment](#recruitment-prolific-sona-or-in-the-lab)).
+4. **How long the study takes, in minutes.** Set `"minutes"`, then tell them the SONA credit or Prolific payment it works out to.
+5. **Which devices participants may use:** computers, tablets and/or phones. Set `"devices"`, e.g. `["computer"]`. For Prolific, tell them to set Prolific's Device compatibility to match.
+6. **The design and what will be analysed:** the conditions, whether each is between or within participants (and how participants are assigned: at random unless they say otherwise), the key measures, and any exclusion rules (attention checks, minimum accuracy, too-fast responses). Record in each trial's `data` everything the analysis needs, e.g. `condition`, `correct`, the correct response, so every data row can be analysed on its own. Add attention checks as named trials.
+7. **Where data is saved:** JATOS (the default) or DataPipe. For DataPipe, set `"dataSaving": "datapipe"`, ask for the DataPipe experiment ID for `datapipeExperimentId`, and point them to `docs/datapipe.md` for turning on data collection and hosting.
+
+8. **Open the preview after each change?** Recommend yes: the experiment dashboard opens (in the Browser pane, or as an artifact link in cloud sessions) so they can click through what was just built. If they say no, still check your changes the same way, but don't open the Browser pane or publish an artifact until they ask; tell them how to open it themselves (`npm run dev`).
+
+Afterwards, summarise the setup back to them (name, protocol, pool, length and pay or credit, devices, design, data saving, preview) before building.
+
 ## Layout
 
 - `src/experiment.js`: the experiment. `buildTimeline(jsPsych)` returns the timeline; `options` are passed to `initJsPsych`. Edit this file when designing a study.
@@ -75,7 +91,7 @@ Participant data is saved to JATOS by default (`src/data/jatos.js`, see `docs/ja
 - Record what the analysis needs in trial `data` (e.g. `data: { condition: "incongruent", correct_key: "f" }`). Every jsPsych data row is saved; the participant ID columns (Prolific or SONA, see below) and JATOS ID columns are added automatically.
 - Keep the experiment's own `on_finish` free of redirects or `jatos` calls: `main.js` saves the data and ends the study after the timeline finishes.
 - Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it. Leave `"template": true` alone in the template repo; when the user starts a new study from the template, set it to `false` along with a new `title` and `dirName`.
-- When the user starts a new study from the template, ask these questions before building it, unless they've already said: where participants come from (Prolific, SONA or in the lab, see [Recruitment](#recruitment-prolific-sona-or-in-the-lab)); how long the study takes in minutes (set `"minutes"` in `study.config.json`, then tell them the SONA credit or Prolific payment it works out to); which devices participants may use: computers, tablets and/or phones (set `"devices"`, e.g. `["computer"]`; tell Prolific users to set Prolific's Device compatibility to match); and whether to save data to JATOS (the default) or DataPipe. For DataPipe, set `"dataSaving": "datapipe"`, ask for the DataPipe experiment ID for `datapipeExperimentId`, and point them to `docs/datapipe.md` for turning on data collection and hosting.
+- Where data is saved is one of the questions in [Starting a new study](#starting-a-new-study).
 - To test saving end to end on the user's computer, use local JATOS: `npm run jatos` (re-run after changes), then the dashboard's **Run as participant** button or the printed study link. It doesn't work in cloud sessions.
 - Preview mode must never load JATOS or save data.
 
@@ -106,7 +122,7 @@ In `npm run dev` the dashboard has a Participants section (`scripts/jatos-dev-da
 
 ## Previewing the experiment (always do this after changing it)
 
-After every change to the experiment, show the user a working preview, and check the parts you changed by jumping to them with `#only-<n>` rather than walking through the whole experiment. Which route to use depends on where this session runs.
+After every change to the experiment, show the user a working preview (unless they said no to opening the preview in [Starting a new study](#starting-a-new-study); then verify headlessly and don't open it), and check the parts you changed by jumping to them with `#only-<n>` rather than walking through the whole experiment. Which route to use depends on where this session runs.
 
 ### Local session in the Claude Code desktop app
 

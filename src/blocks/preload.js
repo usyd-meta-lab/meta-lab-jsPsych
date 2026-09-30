@@ -54,6 +54,7 @@ export function preload(jsPsych) {
         conditional_function: () => loaded === false,
         timeline: [
           {
+            name: "Loading failed message",
             type: htmlKeyboardResponse,
             stimulus: "",
             choices: "NO_KEYS",

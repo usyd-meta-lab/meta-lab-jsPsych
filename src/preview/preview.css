@@ -1,95 +1,153 @@
-/* Preview mode UI. Layout: a single reading column of numbered timeline
-   rows, with a slim bar above the running experiment. */
+/* Experiment dashboard, styled after the lab website
+   (usyd-meta-lab.github.io): warm cream background, dark brown ink,
+   Playfair Display headings, Inter text, pill buttons. The experiment
+   itself still runs on a plain white stage, as participants see it.
+   Fonts are loaded by preview.js; the fallbacks look fine offline. */
 .pv {
-  --pv-ink: #1d2433;
-  --pv-muted: #5d6679;
-  --pv-line: #d9dde6;
-  --pv-surface: #f4f6fa;
-  --pv-accent: #2f5bd3;
-  --pv-accent-soft: #e6ecfb;
-  --pv-warn: #8a4b00;
-  --pv-warn-soft: #fff3e0;
-  --pv-good: #0ca30c;
-  --pv-bar-h: 44px;
-  --pv-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --pv-bg: #fcf6ef;
+  --pv-card: #f6f0e9;
+  --pv-card-strong: #f0e8dd;
+  --pv-paper: #fffcf8;
+  --pv-ink: #2b180a;
+  --pv-muted: #6b5a4a;
+  --pv-faint: #9a8a7a;
+  --pv-line: #e0d4c6;
+  --pv-accent: #c8956c;
+  --pv-accent-strong: #b07a52;
+  --pv-warn: #8a4312;
+  --pv-warn-soft: #fbeadb;
+  --pv-good: #4f8a3c;
+  --pv-bar-h: 52px;
+  --pv-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --pv-display: "Playfair Display", Georgia, serif;
+  --pv-logo: "Caveat", "Segoe Print", cursive;
   --pv-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-family: var(--pv-font);
   color: var(--pv-ink);
+  -webkit-font-smoothing: antialiased;
+}
+/* The dashboard pages (not the experiment stage) sit on the cream background. */
+body:has(> .pv) { margin: 0; }
+body:has(> .pv > .pv-page) { background: #fcf6ef; }
+.pv:has(> .pv-page) {
+  min-height: 100vh;
+  background: var(--pv-bg);
 }
 
 .pv button,
 .pv .pv-button {
   font: inherit;
   font-size: 13px;
+  font-weight: 500;
   color: var(--pv-ink);
-  background: #fff;
+  background: transparent;
   border: 1px solid var(--pv-line);
-  border-radius: 6px;
-  padding: 6px 12px;
+  border-radius: 100px;
+  padding: 8px 18px;
   cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background-color 0.2s;
 }
 .pv button:hover,
-.pv .pv-button:hover { border-color: var(--pv-accent); color: var(--pv-accent); }
+.pv .pv-button:hover { border-color: var(--pv-accent); color: var(--pv-accent-strong); }
 .pv .pv-button { display: inline-block; text-decoration: none; }
-.pv button:focus-visible { outline: 2px solid var(--pv-accent); outline-offset: 2px; }
+.pv button:focus-visible,
+.pv .pv-button:focus-visible { outline: 2px solid var(--pv-accent); outline-offset: 2px; }
 .pv button.pv-primary,
 .pv .pv-button.pv-primary {
-  background: var(--pv-accent);
-  border-color: var(--pv-accent);
-  color: #fff;
-  font-weight: 600;
+  background: var(--pv-ink);
+  border-color: var(--pv-ink);
+  color: var(--pv-bg);
 }
 .pv button.pv-primary:hover,
-.pv .pv-button.pv-primary:hover { filter: brightness(1.1); color: #fff; }
+.pv .pv-button.pv-primary:hover { background: #4a2e18; border-color: #4a2e18; color: var(--pv-bg); }
 
 /* Timeline view */
 .pv-page {
-  max-width: 760px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 32px 16px 64px;
+  padding: 40px 16px 72px;
   text-align: left;
 }
 .pv-header {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px;
-  align-items: flex-start;
+  gap: 16px 24px;
+  align-items: flex-end;
   justify-content: space-between;
-  padding-bottom: 20px;
+  padding-bottom: 28px;
   border-bottom: 1px solid var(--pv-line);
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 .pv-header > div { min-width: 0; flex: 1 1 320px; }
 .pv-eyebrow {
-  margin: 0 0 4px;
-  font-size: 11px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 0 10px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--pv-accent);
+  color: var(--pv-muted);
 }
-.pv h1 { margin: 0 0 8px; font-size: 24px; line-height: 1.2; text-wrap: balance; }
-.pv-note { margin: 0; font-size: 14px; line-height: 1.5; color: var(--pv-muted); max-width: 60ch; }
+.pv-brand {
+  font-family: var(--pv-logo);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--pv-ink);
+}
+.pv h1 {
+  margin: 0 0 8px;
+  font-family: var(--pv-display);
+  font-size: clamp(30px, 5vw, 42px);
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.pv-note { margin: 0; font-size: 14px; line-height: 1.6; color: var(--pv-muted); max-width: 62ch; }
 .pv-warning {
   margin: 0 0 16px;
-  padding: 10px 12px;
-  border-radius: 6px;
+  padding: 12px 16px;
+  border-radius: 14px;
   background: var(--pv-warn-soft);
   color: var(--pv-warn);
   font-size: 14px;
+  line-height: 1.5;
 }
 
-.pv-section { display: grid; gap: 8px; margin-bottom: 28px; }
-.pv-section h2 { margin: 0; font-size: 17px; }
+.pv-section { display: grid; gap: 12px; margin-bottom: 40px; }
+.pv-section h2 {
+  margin: 0;
+  font-family: var(--pv-display);
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
 .pv-section > .pv-note { margin: 0 0 4px; }
 .pv-section-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .pv-section-head .pv-note { flex: 1; min-width: 0; max-width: none; font-size: 13px; }
-.pv .pv-small { padding: 3px 10px; font-size: 12px; }
+.pv .pv-small { padding: 4px 12px; font-size: 12px; }
 
-.pv-participants-body { display: grid; gap: 14px; }
+/* Participants */
+.pv-participants-body {
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  background: var(--pv-card);
+  border-radius: 24px;
+}
 .pv-participants-body p { margin: 0; }
-.pv-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
-.pv-hero-value { font-size: 56px; line-height: 1; font-weight: 650; letter-spacing: -0.02em; }
+.pv-hero { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 18px; }
+.pv-hero-value {
+  font-family: var(--pv-display);
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
 .pv-hero-text { display: grid; gap: 2px; min-width: 0; }
 .pv-hero-label { font-size: 16px; font-weight: 600; }
 .pv-hero-text .pv-note { font-size: 13px; }
@@ -97,21 +155,21 @@
 .pv-tiles {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
-@media (max-width: 560px) {
+@media (max-width: 600px) {
   .pv-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .pv-tile {
   display: grid;
-  gap: 2px;
-  padding: 10px 12px;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--pv-paper);
   border: 1px solid var(--pv-line);
-  border-radius: 8px;
-  background: #fff;
 }
 .pv-tile-label { font-size: 12px; color: var(--pv-muted); }
-.pv-tile-value { font-size: 22px; font-weight: 600; line-height: 1.2; }
+.pv-tile-value { font-family: var(--pv-display); font-size: 26px; font-weight: 500; line-height: 1.1; }
 .pv-live .pv-tile-label::before {
   content: "";
   display: inline-block;
@@ -124,13 +182,36 @@
 }
 .pv-participants .pv-actions { margin: 0; }
 
-.pv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-.pv-list .pv-list {
-  margin: 6px 0 4px 20px;
-  padding-left: 12px;
-  border-left: 2px solid var(--pv-line);
+/* Recruitment: the study URL to give out and the end redirect. */
+.pv .pv-recruitment {
+  display: grid;
+  gap: 8px;
+  padding: 16px 18px;
+  background: var(--pv-paper);
+  border: 1px solid var(--pv-line);
+  border-radius: 16px;
+  font-size: 14px;
+  line-height: 1.5;
 }
-.pv-root { gap: 10px; }
+.pv .pv-recruitment p { margin: 0; }
+.pv .pv-recruitment .pv-warning { margin: 4px 0 0; }
+.pv .pv-recruitment code { font-family: var(--pv-mono); font-size: 12px; overflow-wrap: anywhere; }
+.pv .pv-code {
+  display: block;
+  padding: 8px 12px;
+  background: var(--pv-card);
+  border-radius: 10px;
+  user-select: all;
+}
+
+/* Timeline */
+.pv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.pv-list .pv-list {
+  margin: 8px 0 4px 22px;
+  padding-left: 14px;
+  border-left: 1px solid var(--pv-line);
+}
+.pv-root { gap: 12px; }
 
 .pv-row { display: flex; gap: 8px; align-items: stretch; }
 .pv .pv-jump {
@@ -139,31 +220,36 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 10px;
+  gap: 4px 12px;
   text-align: left;
-  padding: 10px 12px;
+  padding: 12px 18px;
+  border-radius: 16px;
+  background: var(--pv-paper);
 }
-.pv-block > .pv-row .pv-jump { background: var(--pv-surface); }
-.pv-block > .pv-row .pv-label { font-weight: 600; }
+.pv-block > .pv-row .pv-jump { background: var(--pv-card-strong); border-color: transparent; }
+.pv-block > .pv-row .pv-jump:hover { border-color: var(--pv-accent); }
+.pv-block > .pv-row .pv-label { font-family: var(--pv-display); font-size: 17px; font-weight: 500; }
 .pv-num {
-  font-family: var(--pv-mono);
-  font-size: 12px;
-  color: var(--pv-muted);
+  font-family: var(--pv-display);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--pv-faint);
   font-variant-numeric: tabular-nums;
-  min-width: 2.5em;
+  min-width: 2.2em;
 }
-.pv-label { font-size: 15px; overflow-wrap: anywhere; }
+.pv-label { font-size: 15px; font-weight: 500; overflow-wrap: anywhere; }
 .pv-details { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
 .pv-chip {
   font-size: 11px;
+  font-weight: 400;
   color: var(--pv-muted);
-  background: #fff;
+  background: transparent;
   border: 1px solid var(--pv-line);
-  border-radius: 999px;
-  padding: 1px 8px;
+  border-radius: 100px;
+  padding: 1px 9px;
 }
-.pv .pv-jump:hover .pv-num { color: var(--pv-accent); }
-.pv .pv-only { flex: none; color: var(--pv-muted); }
+.pv .pv-jump:hover .pv-num { color: var(--pv-accent-strong); }
+.pv .pv-only { flex: none; color: var(--pv-muted); border-radius: 16px; font-size: 12px; }
 
 /* Run view */
 .pv-bar {
@@ -177,22 +263,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 12px;
-  background: var(--pv-surface);
+  padding: 0 14px;
+  background: var(--pv-bg);
   border-bottom: 1px solid var(--pv-line);
   font-size: 13px;
 }
-.pv .pv-bar button { padding: 4px 10px; }
+.pv .pv-bar button { padding: 6px 14px; font-size: 12px; }
 .pv-where {
   flex: 1;
   min-width: 0;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: baseline;
   white-space: nowrap;
   overflow: hidden;
 }
-.pv-crumbs { font-weight: 600; overflow: hidden; text-overflow: ellipsis; }
+.pv-crumbs { font-family: var(--pv-display); font-size: 15px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; }
 .pv-mode { color: var(--pv-muted); }
 .pv-stage {
   position: fixed;
@@ -201,58 +287,46 @@
   right: 0;
   bottom: 0;
 }
+/* After a run: the results page is part of the dashboard, not the experiment. */
+.pv-stage:has(> .pv-done) { background: var(--pv-bg); overflow-y: auto; }
 
 .pv-done {
-  max-width: 760px;
+  max-width: 800px;
   width: 100%;
   margin: 0 auto;
-  padding: 32px 16px;
+  padding: 36px 16px;
   box-sizing: border-box;
   text-align: left;
 }
-.pv-done h2 { margin: 0 0 4px; font-size: 20px; }
-.pv-done p { margin: 0 0 16px; color: var(--pv-muted); font-size: 14px; }
-.pv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.pv-done h2 {
+  margin: 0 0 4px;
+  font-family: var(--pv-display);
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+.pv-done > p { margin: 0 0 18px; color: var(--pv-muted); font-size: 14px; }
+.pv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 18px; }
 .pv-status { font-size: 13px; color: var(--pv-muted); }
 .pv-data {
   margin: 0;
-  padding: 12px;
-  background: var(--pv-surface);
-  border: 1px solid var(--pv-line);
-  border-radius: 6px;
+  padding: 16px 18px;
+  background: var(--pv-card);
+  border-radius: 16px;
   font-family: var(--pv-mono);
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   overflow-x: auto;
   max-height: 60vh;
 }
 
-/* Recruitment: the study URL to give out and the end redirect. */
-.pv .pv-recruitment {
-  margin: 0 0 16px;
-  padding: 12px 14px;
-  background: var(--pv-surface);
-  border: 1px solid var(--pv-line);
-  border-radius: 8px;
-}
-.pv .pv-recruitment p { margin: 0 0 6px; }
-.pv .pv-recruitment p:last-child { margin-bottom: 0; }
-.pv .pv-recruitment code { font-family: var(--pv-mono); font-size: 12px; overflow-wrap: anywhere; }
-.pv .pv-code {
-  display: block;
-  margin: 0 0 6px;
-  padding: 6px 8px;
-  background: #ffffff;
-  border: 1px solid var(--pv-line);
-  border-radius: 6px;
-  user-select: all;
-}
-
-/* What an excluded participant sees, shown in the run's results. */
+/* What a stopped participant sees, shown in the run's results. */
 .pv .pv-excluded-message {
-  margin: 8px 0;
-  padding: 8px 12px;
-  background: #ffffff;
-  border-radius: 6px;
+  margin: 10px 0;
+  padding: 10px 14px;
+  background: var(--pv-paper);
+  border-radius: 10px;
+  color: var(--pv-ink);
 }
 .pv .pv-excluded-message p { margin: 4px 0; }
+.pv-done .pv-warning p { margin: 0; color: inherit; }

@@ -39,8 +39,14 @@ let refreshTimer = null;
 // is absent and a normal browser download is used.
 let artifactDownloads = Promise.resolve(null);
 
+// The lab website's fonts (usyd-meta-lab.github.io). Loaded here rather
+// than in index.html so the participant build never fetches them.
+const FONTS =
+  "https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;1,400&display=swap";
+
 export function startPreview() {
   if (window.claude?.use) artifactDownloads = window.claude.use("downloads");
+  document.head.append(Object.assign(document.createElement("link"), { rel: "stylesheet", href: FONTS }));
   root = document.createElement("div");
   root.className = "pv";
   document.body.append(root);
@@ -53,7 +59,7 @@ export function startPreview() {
       el(
         "main",
         { class: "pv-page" },
-        el("p", { class: "pv-eyebrow" }, "Experiment dashboard"),
+        el("p", { class: "pv-eyebrow" }, el("span", { class: "pv-brand" }, "Meta Lab"), "Experiment dashboard"),
         el("h1", {}, "The experiment has an error"),
         el("p", { class: "pv-warning" }, error.message),
         el("p", { class: "pv-note" }, "Fix it in src/experiment.js. This page reloads when you save."),
@@ -154,7 +160,7 @@ function renderTimeline(invalidHash) {
         el(
           "div",
           {},
-          el("p", { class: "pv-eyebrow" }, "Experiment dashboard"),
+          el("p", { class: "pv-eyebrow" }, el("span", { class: "pv-brand" }, "Meta Lab"), "Experiment dashboard"),
           el("h1", {}, document.title),
           el("p", { class: "pv-note" }, "For the research team only. Participants never see this page."),
         ),
