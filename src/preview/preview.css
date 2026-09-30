@@ -330,3 +330,55 @@ body:has(> .pv > .pv-page) { background: #fcf6ef; }
 }
 .pv .pv-excluded-message p { margin: 4px 0; }
 .pv-done .pv-warning p { margin: 0; color: inherit; }
+
+/* Setup summary: one row of icons across the top of the dashboard. */
+.pv .pv-summary {
+  list-style: none;
+  margin: 0 0 40px;
+  padding: 22px 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 18px 8px;
+  background: var(--pv-card);
+  border-radius: 24px;
+}
+.pv .pv-summary-item {
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 4px;
+  text-align: center;
+  padding: 0 6px;
+}
+.pv .pv-summary-item + .pv-summary-item { border-left: 1px solid var(--pv-line); }
+.pv .pv-summary-icons { display: flex; gap: 4px; color: var(--pv-ink); margin-bottom: 4px; }
+.pv .pv-summary-value { font-family: var(--pv-display); font-size: 18px; font-weight: 500; line-height: 1.2; }
+.pv .pv-summary-caption {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--pv-faint);
+}
+.pv .pv-summary-missing .pv-summary-value { color: var(--pv-warn); }
+@media (max-width: 600px) {
+  .pv .pv-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pv .pv-summary-item + .pv-summary-item { border-left: none; }
+}
+
+/* Recruitment checklist: what to set on Prolific or SONA. */
+.pv .pv-recruitment-title { font-family: var(--pv-display); font-size: 18px; font-weight: 500; }
+.pv .pv-checklist {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) 1fr;
+  gap: 10px 18px;
+  margin: 4px 0 0;
+}
+.pv .pv-checklist dt { font-size: 13px; font-weight: 600; color: var(--pv-muted); padding-top: 2px; }
+.pv .pv-checklist dd { margin: 0; display: grid; gap: 4px; min-width: 0; }
+.pv .pv-checklist .pv-code { margin: 0; }
+.pv .pv-missing { color: var(--pv-warn); }
+@media (max-width: 600px) {
+  .pv .pv-checklist { grid-template-columns: 1fr; gap: 2px; }
+  .pv .pv-checklist dd { margin-bottom: 10px; }
+}

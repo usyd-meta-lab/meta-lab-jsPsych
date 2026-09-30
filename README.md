@@ -20,16 +20,23 @@ Each experiment lives in its own small folder that depends on one release of the
 
 ### Start a new experiment
 
-**With Claude (recommended).** Add the lab's plugin once. In a Claude Code session, run:
+**With Claude (recommended).** Add the lab's plugin once. Open a terminal (on a Mac: the Terminal app, in Applications → Utilities) and run these two commands, one at a time:
 
+```bash
+npx @anthropic-ai/claude-code plugin marketplace add usyd-meta-lab/meta-lab-jsPsych
 ```
-/plugin marketplace add usyd-meta-lab/meta-lab-jsPsych
-/plugin install meta-lab@usyd-meta-lab
+
+```bash
+npx @anthropic-ai/claude-code plugin install meta-lab@usyd-meta-lab
 ```
 
-Then, in any session, say **"start a new experiment"**. Claude asks for the study's name, creates its folder and sets it up.
+Each ends with a "Successfully added" or "Successfully installed" line. `npx` runs Claude Code's command-line tool without installing it, so this works even if typing `claude` in a terminal gives "command not found".
 
-**Or from a terminal:**
+If you use Claude Code in a terminal (the `claude` command), you can type these in a session instead: `/plugin marketplace add usyd-meta-lab/meta-lab-jsPsych`, then `/plugin install meta-lab@usyd-meta-lab`. Lines starting with `/` go in Claude Code, never in the terminal itself.
+
+Then start a new Claude Code session and say **"start a new experiment"**. Claude asks for the study's name, creates its folder and sets it up.
+
+**Or create the folder yourself, from a terminal:**
 
 ```bash
 npx github:usyd-meta-lab/meta-lab-jsPsych new my-study --title "My study"
@@ -88,7 +95,13 @@ Your experiment uses one release of the kit, named in its `package.json` (e.g. `
 
 - **To update**, ask Claude to "update the kit to v0.2.0". It changes the version, reinstalls and previews the whole study.
 - **Never update while collecting data** unless you need a specific fix: an update can change timing or saving mid-study.
-- **The plugin** doesn't update by itself unless you turn that on: in `/plugin`, go to **Marketplaces**, select `usyd-meta-lab` and choose **Enable auto-update**.
+- **The plugin** doesn't update by itself. To get the latest version, run:
+
+  ```bash
+  npx @anthropic-ai/claude-code plugin update meta-lab@usyd-meta-lab
+  ```
+
+  In a terminal Claude Code session, you can instead turn on automatic updates: in `/plugin`, go to **Marketplaces**, select `usyd-meta-lab` and choose **Enable auto-update**.
 
 ## For maintainers
 
