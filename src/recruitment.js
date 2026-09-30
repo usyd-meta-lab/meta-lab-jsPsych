@@ -93,6 +93,17 @@ export function endRedirectUrl(config) {
 
 /** Problems that would stop participants getting paid or credited correctly. */
 export function recruitmentProblems(config) {
+  const problems = paymentProblems(config);
+  // Without its ID, a DataPipe study can't save anything.
+  if (config.dataSaving === "datapipe" && !String(config.datapipeExperimentId ?? "").trim()) {
+    problems.push(
+      "DataPipe studies need datapipeExperimentId: sign in at https://pipe.jspsych.org, create an experiment, and copy its experiment ID into study.config.json.",
+    );
+  }
+  return problems;
+}
+
+function paymentProblems(config) {
   const { name } = recruitmentOf(config);
   const url = (config.endRedirectUrl ?? "").trim();
   if (name !== "lab" && !(Number(config.minutes) > 0)) {
