@@ -144,7 +144,7 @@ function renderTimeline(invalidHash) {
         el(
           "button",
           { class: "pv-primary", type: "button", onclick: () => navigate("full") },
-          "Run full experiment",
+          "Preview full experiment",
         ),
       ),
       // Real participant numbers and data from JATOS: dev server only (see
@@ -230,7 +230,7 @@ function renderParticipants(body, meta, refresh, info) {
       el(
         "p",
         { class: "pv-note" },
-        "To see participant numbers and download data here, add JATOS_URL and JATOS_API_TOKEN to .env.local (see docs/jatos.md).",
+        "Run npm run jatos to test with a local JATOS on this computer, or add JATOS_URL and JATOS_API_TOKEN to .env.local for the lab's server (see docs/jatos.md).",
       ),
     );
     return;
@@ -252,6 +252,12 @@ function renderParticipants(body, meta, refresh, info) {
 
   const status = el("span", { class: "pv-status", role: "status" });
   body.replaceChildren(
+    info.local &&
+      el(
+        "p",
+        { class: "pv-note" },
+        "Testing with local JATOS: data from test runs stays on this computer. Run npm run jatos again after changing the experiment.",
+      ),
     el(
       "div",
       { class: "pv-hero" },
@@ -279,6 +285,12 @@ function renderParticipants(body, meta, refresh, info) {
     el(
       "div",
       { class: "pv-actions" },
+      info.studyLink &&
+        el(
+          "a",
+          { class: "pv-button pv-primary", href: info.studyLink, target: "_blank", rel: "noopener" },
+          "Run as participant",
+        ),
       jatosDownloadButton("Download CSV", "/__jatos/data.csv", status),
       jatosDownloadButton("Download NDJSON", "/__jatos/data.ndjson", status),
       status,

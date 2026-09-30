@@ -25,6 +25,8 @@ Participants run the experiment on the lab's [JATOS](https://www.jatos.org) serv
 
 With a JATOS API token in `.env.local`, the dashboard in `npm run dev` also shows participant numbers (completed, in progress, dropped out, withdrew, failed) and lets you download all participant data as CSV.
 
+To test the whole data path before the lab server exists, run `npm run jatos`. It downloads and starts JATOS on your own computer, imports the experiment, and connects the dashboard to it, including a **Run as participant** button.
+
 Setup, Prolific, data export and local testing: see [docs/jatos.md](docs/jatos.md).
 
 ## Designing an experiment with Claude
@@ -42,7 +44,7 @@ Open the repo in Claude Code and describe the experiment you want. `CLAUDE.md` t
 | `npm run build` | Participant build to `dist/` |
 | `npm run build:jatos` | Participant build packaged as `jatos/<dirName>.jzip` for JATOS import |
 | `npm run build:preview` | Self-contained `preview/index.html` for artifact previews |
-| `npm run jatos:local` / `jatos:stop` | Start or stop a local JATOS server (needs Docker) |
+| `npm run jatos` / `jatos:stop` | Start local JATOS for testing (imports the experiment, prints a study link) / stop it |
 
 ## Project layout
 
@@ -55,8 +57,8 @@ src/preview/          experiment dashboard (never shipped to participants)
 study.config.json     JATOS study settings (title, UUID, Prolific redirect)
 scripts/build-jatos.mjs  packages dist/ as a JATOS study archive
 scripts/jatos-dev-data.js  dev-server endpoint for downloading participant data
+scripts/jatos-local.mjs    local JATOS for testing (npm run jatos)
 .env.example          template for .env.local (JATOS URL and API token)
-docker-compose.yml    local JATOS server for testing
 vite.config.js        dev server and build config
 .claude/launch.json   Browser pane preview config for Claude Code desktop
 .claude/settings.json installs dependencies at the start of cloud sessions

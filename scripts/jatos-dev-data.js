@@ -3,11 +3,11 @@
 // process; the browser only talks to the local dev server. This plugin runs
 // only under `npm run dev` and is never part of any build.
 //
-// Config (in .env.local, or as environment variables):
-//   JATOS_URL=https://jatos.example.edu.au
-//   JATOS_API_TOKEN=jap_...
+// Which JATOS: JATOS_URL and JATOS_API_TOKEN from .env.local (or the
+// environment) when set, otherwise the local JATOS started by `npm run jatos`
+// (its URL and token are in .jatos/local.json).
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { loadEnv } from "vite";
 
 const LOOPBACK = new Set(["127.0.0.1", "::1", "::ffff:127.0.0.1"]);
@@ -79,9 +79,10 @@ export function jatosDevData() {
         if (!LOOPBACK.has(req.socket.remoteAddress)) return send(res, 403, "Local requests only.");
         try {
           const route = req.url.split("?")[0];
-          if (route === "/summary") return sendJson(res, await summary(env));
-          if (route === "/data.csv") return sendFile(res, await exportData(env, "csv"));
-          if (route === "/data.ndjson") return sendFile(res, await exportData(env, "ndjson"));
+          const jatos = connection(env);
+          if (route === "/summary") return sendJson(res, await summary(jatos));
+          if (route === "/data.csv") return sendFile(res, await exportData(jatos, "csv"));
+          if (route === "/data.ndjson") return sendFile(res, await exportData(jatos, "ndjson"));
           send(res, 404, "Not found.");
         } catch (error) {
           send(res, 502, error.message);
@@ -91,11 +92,31 @@ export function jatosDevData() {
   };
 }
 
-function studyConfig() {
-  return JSON.parse(readFileSync("study.config.json", "utf8"));
+/** The JATOS server to use: .env.local first, then the local JATOS. */
+function connection(env) {
+  if (env.JATOS_URL && env.JATOS_API_TOKEN) return { ...env, local: false };
+  try {
+    const local = JSON.parse(readFileSync(".jatos/local.json", "utf8"));
+    if (local.url && local.token) {
+      return { JATOS_URL: local.url, JATOS_API_TOKEN: local.token, local: true, studyLink: local.studyLink };
+    }
+  } catch {
+    // No local JATOS set up yet.
+  }
+  return {};
 }
 
-const NOT_IMPORTED = "This study isn't on the JATOS server yet, or the token's user isn't a member of it. Run npm run build:jatos and import it.";
+function studyConfig() {
+  const config = JSON.parse(readFileSync("study.config.json", "utf8"));
+  // The template repo keeps its UUID out of git (see scripts/build-jatos.mjs).
+  if (config.template) {
+    const path = ".jatos/template-study-uuid";
+    config.uuid = existsSync(path) ? readFileSync(path, "utf8").trim() : "";
+  }
+  return config;
+}
+
+const NOT_IMPORTED = "This study isn't on the JATOS server yet, or the token's user isn't a member of it. Run npm run jatos (local JATOS) or npm run build:jatos and import it.";
 
 async function jatosApi(env, path, method = "GET") {
   let response;
@@ -128,9 +149,16 @@ async function metadata(env, uuid) {
 async function summary(env) {
   const study = studyConfig();
   if (!env.JATOS_URL || !env.JATOS_API_TOKEN) return { configured: false };
-  const base = { configured: true, server: new URL(env.JATOS_URL).host, title: study.title };
+  const base = {
+    configured: true,
+    server: env.local ? "local JATOS" : new URL(env.JATOS_URL).host,
+    title: study.title,
+    local: env.local,
+    // Only the local test link is shown; real study links stay in JATOS.
+    studyLink: env.local ? env.studyLink : undefined,
+  };
   if (!study.uuid) {
-    return { ...base, error: "This study has no UUID yet. Run npm run build:jatos and import it into JATOS." };
+    return { ...base, error: "This study isn't in JATOS yet. Run npm run jatos (local JATOS) or npm run build:jatos and import it." };
   }
   try {
     return { ...base, ...summarise(await metadata(env, study.uuid)) };

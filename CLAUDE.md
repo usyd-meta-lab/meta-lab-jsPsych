@@ -55,7 +55,8 @@ Participant data is saved to JATOS by `src/data.js`; `docs/jatos.md` has the ful
 - Don't add other ways of saving or sending data (fetch calls, third-party services, `localSave`) unless the user asks.
 - Record what the analysis needs in trial `data` (e.g. `data: { condition: "incongruent", correct_key: "f" }`). Every jsPsych data row is saved; the Prolific and JATOS ID columns are added automatically.
 - Keep the experiment's own `on_finish` free of redirects or `jatos` calls: `main.js` saves the data and ends the study after the timeline finishes.
-- Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it.
+- Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it. Leave `"template": true` alone in the template repo; when the user starts a new study from the template, set it to `false` along with a new `title` and `dirName`.
+- To test saving end to end on the user's computer, use local JATOS: `npm run jatos` (re-run after changes), then the dashboard's **Run as participant** button or the printed study link. It doesn't work in cloud sessions.
 - Preview mode must never load JATOS or save data.
 
 ## Participant data (privacy)
@@ -102,4 +103,4 @@ To verify headlessly, run `npm run dev` in the background and drive `http://loca
 - `npm run build`: participant build to `dist/`
 - `npm run build:jatos`: participant build packaged as `jatos/<dirName>.jzip` for import into JATOS
 - `npm run build:preview`: single-file build to `preview/index.html` for artifact previews
-- `npm run jatos:local` / `npm run jatos:stop`: local JATOS server for testing the data path (needs Docker)
+- `npm run jatos` / `npm run jatos:stop`: local JATOS for testing the data path (downloads JATOS into `.jatos/` on first run)

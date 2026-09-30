@@ -17,7 +17,8 @@
   color: var(--pv-ink);
 }
 
-.pv button {
+.pv button,
+.pv .pv-button {
   font: inherit;
   font-size: 13px;
   color: var(--pv-ink);
@@ -27,15 +28,19 @@
   padding: 6px 12px;
   cursor: pointer;
 }
-.pv button:hover { border-color: var(--pv-accent); color: var(--pv-accent); }
+.pv button:hover,
+.pv .pv-button:hover { border-color: var(--pv-accent); color: var(--pv-accent); }
+.pv .pv-button { display: inline-block; text-decoration: none; }
 .pv button:focus-visible { outline: 2px solid var(--pv-accent); outline-offset: 2px; }
-.pv button.pv-primary {
+.pv button.pv-primary,
+.pv .pv-button.pv-primary {
   background: var(--pv-accent);
   border-color: var(--pv-accent);
   color: #fff;
   font-weight: 600;
 }
-.pv button.pv-primary:hover { filter: brightness(1.1); color: #fff; }
+.pv button.pv-primary:hover,
+.pv .pv-button.pv-primary:hover { filter: brightness(1.1); color: #fff; }
 
 /* Timeline view */
 .pv-page {

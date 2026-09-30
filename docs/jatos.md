@@ -2,12 +2,33 @@
 
 Participants run the experiment on a [JATOS](https://www.jatos.org) server the lab controls. JATOS serves the experiment files and stores the data. Preview mode (`npm run dev`, `npm run build:preview`) never touches JATOS and never saves data.
 
+There are two JATOS setups:
+
+- **Local JATOS, for testing** (`npm run jatos`): runs on your own computer, reachable only from it. Use it to test the full data-saving path and the dashboard before the lab server exists. Never use it for real participants.
+- **The lab's JATOS server, for real data collection**: see [The JATOS server](#the-jatos-server). Sections 1 to 3 below are about that server.
+
+## Testing with local JATOS
+
+```sh
+npm run jatos         # start local JATOS, import the current experiment, print a study link
+npm run jatos:stop    # stop it
+```
+
+The first run downloads JATOS 3.11.3 with its own Java (about 100 MB) into `.jatos/`. Nothing else needs installing. Each later run reuses it, re-imports the current experiment and keeps the same study link, so run `npm run jatos` again after changing the experiment.
+
+- The experiment dashboard (`npm run dev`) connects to local JATOS automatically: participant numbers, downloads, and a **Run as participant** button that runs the experiment through JATOS and saves the data, exactly as a real participant would. The link includes test Prolific IDs (`PROLIFIC_PID=local-test`).
+- Local JATOS only listens on this computer (`127.0.0.1`), so the default admin login (user `admin`, password `admin`, at http://localhost:9000) is safe to keep.
+- Its database, results and settings live in `.jatos/`, which is never committed. Delete `.jatos/` to start again from scratch.
+- When `.env.local` names a JATOS server, the dashboard uses that instead of local JATOS.
+- It needs a normal computer (macOS, Windows or Linux on x64). It doesn't work in Claude Code cloud sessions, which can't download JATOS.
+
 ## 1. Set up the study
 
 Edit `study.config.json`:
 
 | Field | What it's for |
 | - | - |
+| `template` | `true` only in the template repo itself: its study UUID is then kept in `.jatos/` instead of being committed. **Set it to `false` (or delete it) when you start a new study from the template.** |
 | `title` | Study name shown in JATOS. |
 | `dirName` | Folder name for the study's files on the JATOS server. Letters, digits, `-` and `_` only. Must be unique on the server. |
 | `uuid` | Leave empty. The first `npm run build:jatos` fills it in. Commit it: re-importing an archive with the same UUID updates the existing JATOS study instead of creating a new one. **If you copy another study's folder to start a new study, clear this field**, or importing will overwrite the other study. |
@@ -51,7 +72,7 @@ See also the JATOS guide [Use Prolific](https://www.jatos.org/Use-Prolific.html)
 
 `npm run dev` opens the experiment dashboard. Its **Participants** section shows how many participants have completed (with completion rate, median time and when the last one finished), how many are in progress right now, dropped out, withdrew or failed, and has **Download CSV** / **Download NDJSON** buttons. It refreshes every minute while open. "In progress" means not finished and active in the last 5 minutes; after that a run counts as dropped out. Runs started from inside JATOS (your own tests) are left out of the counts. The files contain every trial from every run, with these columns added from JATOS: `jatos_study_state`, `jatos_worker_type`, `jatos_start_time`, `jatos_end_time`.
 
-To set it up once per computer:
+For local JATOS this is automatic (see [Testing with local JATOS](#testing-with-local-jatos)). For the lab's server, set it up once per computer:
 
 1. In JATOS, create a user for data access (the normal "User" role, not admin) and add it as a member of your studies.
 2. Signed in as that user, create an API token (user menu, **API tokens**).
@@ -81,18 +102,6 @@ rows = pd.read_json("results.txt", lines=True)
 ```
 
 Group by `jatos_study_result_id` (one per run) or `prolific_pid`. Runs that JATOS marks as not finished are dropouts or withdrawals.
-
-## Testing locally
-
-With Docker installed:
-
-```sh
-npm run jatos:local    # JATOS at http://localhost:9000, user admin, password admin
-npm run build:jatos    # then import jatos/<dirName>.jzip
-npm run jatos:stop
-```
-
-Run it through a study link from **Study Links** (e.g. a Personal Multiple link) to check the whole flow. Add `?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` to the link to check the Prolific columns.
 
 ## The JATOS server
 

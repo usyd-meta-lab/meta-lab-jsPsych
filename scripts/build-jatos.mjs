@@ -4,6 +4,10 @@
 // Re-importing an archive with the same study UUID updates the existing
 // study in JATOS instead of creating a new one, so the UUID is generated
 // once and saved to study.config.json. Commit that file.
+//
+// Exception: while "template": true (the template repo itself), the UUID is
+// kept in .jatos/template-study-uuid, which is never committed, so studies
+// copied from the template never share a UUID.
 
 import { execSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
@@ -13,8 +17,15 @@ import { zipSync } from "fflate";
 
 const configPath = "study.config.json";
 const config = JSON.parse(readFileSync(configPath, "utf8"));
+const templateUuidPath = join(".jatos", "template-study-uuid");
 
-if (!config.uuid) {
+if (config.template) {
+  if (!existsSync(templateUuidPath)) {
+    mkdirSync(".jatos", { recursive: true });
+    writeFileSync(templateUuidPath, randomUUID());
+  }
+  config.uuid = readFileSync(templateUuidPath, "utf8").trim();
+} else if (!config.uuid) {
   config.uuid = randomUUID();
   writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
   console.log(`Generated study UUID ${config.uuid} and saved it to ${configPath}. Commit this file.`);
@@ -102,4 +113,4 @@ files[`${config.dirName}.jas`] = new TextEncoder().encode(JSON.stringify(studyJs
 mkdirSync("jatos", { recursive: true });
 const out = join("jatos", `${config.dirName}.jzip`);
 writeFileSync(out, zipSync(files));
-console.log(`Wrote ${out}. Import it in JATOS: Studies > Import study.`);
+if (!process.env.JATOS_LOCAL_IMPORT) console.log(`Wrote ${out}. Import it in JATOS: Studies > Import study.`);

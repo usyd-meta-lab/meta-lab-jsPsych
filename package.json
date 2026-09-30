@@ -9,8 +9,8 @@
     "build": "vite build",
     "build:jatos": "vite build && node scripts/build-jatos.mjs",
     "build:preview": "vite build --mode preview",
-    "jatos:local": "docker compose up -d",
-    "jatos:stop": "docker compose down"
+    "jatos:stop": "node scripts/jatos-local.mjs stop",
+    "jatos": "node scripts/jatos-local.mjs start"
   },
   "repository": {
     "type": "git",
