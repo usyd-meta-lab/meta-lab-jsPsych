@@ -1,0 +1,77 @@
+# Running a study on JATOS
+
+Participants run the experiment on a [JATOS](https://www.jatos.org) server the lab controls. JATOS serves the experiment files and stores the data. Preview mode (`npm run dev`, `npm run build:preview`) never touches JATOS and never saves data.
+
+## 1. Set up the study
+
+Edit `study.config.json`:
+
+| Field | What it's for |
+| - | - |
+| `title` | Study name shown in JATOS. |
+| `dirName` | Folder name for the study's files on the JATOS server. Letters, digits, `-` and `_` only. Must be unique on the server. |
+| `uuid` | Leave empty. The first `npm run build:jatos` fills it in. Commit it: re-importing an archive with the same UUID updates the existing JATOS study instead of creating a new one. **If you copy another study's folder to start a new study, clear this field**, or importing will overwrite the other study. |
+| `endRedirectUrl` | Where participants go after the data is saved, e.g. the Prolific completion URL `https://app.prolific.com/submissions/complete?cc=XXXXXXX`. Values from the study link can be inserted with square brackets, e.g. `[PROLIFIC_PID]`. Empty shows JATOS's own end page. |
+| `withdrawButton` | `true` adds a "Withdraw" button in the corner. After the participant confirms, JATOS ends the study and deletes everything they submitted. |
+
+## 2. Build and import
+
+```sh
+npm run build:jatos
+```
+
+This writes `jatos/<dirName>.jzip`. In JATOS, choose **Import Study** and select that file.
+
+To update a study, rebuild and import again. JATOS asks whether to overwrite the existing study. Study links and batches are kept.
+
+Each build records its git commit in every data row (`experiment_version`). Commit your changes before building for data collection; a version ending in `-dirty` means the build included uncommitted changes.
+
+## 3. Connect to Prolific
+
+1. In JATOS, open the study's **Study Links**. Use the **General Single** link (each browser can take part once; the imported study already allows it).
+2. In Prolific, paste that link as the study URL and choose Prolific's option to add URL parameters. The link should end up like:
+   ```
+   https://your-jatos-server/publix/<code>?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
+   ```
+3. Set `endRedirectUrl` to Prolific's completion URL (or set **End Redirect URL** in the JATOS study properties).
+
+See also the JATOS guide [Use Prolific](https://www.jatos.org/Use-Prolific.html).
+
+## What gets saved
+
+- Each trial is saved as soon as it finishes, so data from participants who drop out is kept.
+- At the end, the complete dataset is saved again, then the participant is redirected.
+- If the connection drops, trials are resent with the next save. If the final save fails, the participant sees a "Try again" button and is not redirected until the data is saved.
+- Every row has `prolific_pid`, `prolific_study_id`, `prolific_session_id`, `jatos_study_result_id`, `jatos_worker_id` and `experiment_version`.
+- Reloading the page ends the study (JATOS shows an error page) and keeps the trials already saved. `jatos.js` warns participants before they leave the page.
+
+## Getting the data out
+
+In JATOS, open the study's **Results**, select the results, and export the data. Each participant's result is newline-delimited JSON: one trial per line.
+
+```r
+rows <- jsonlite::stream_in(file("results.txt"))
+```
+
+```python
+import pandas as pd
+rows = pd.read_json("results.txt", lines=True)
+```
+
+Group by `jatos_study_result_id` (one per run) or `prolific_pid`. Runs that JATOS marks as not finished are dropouts or withdrawals.
+
+## Testing locally
+
+With Docker installed:
+
+```sh
+npm run jatos:local    # JATOS at http://localhost:9000, user admin, password admin
+npm run build:jatos    # then import jatos/<dirName>.jzip
+npm run jatos:stop
+```
+
+Run it through a study link from **Study Links** (e.g. a Personal Multiple link) to check the whole flow. Add `?PROLIFIC_PID=test1&STUDY_ID=s&SESSION_ID=x` to the link to check the Prolific columns.
+
+## The JATOS server
+
+The lab needs one JATOS server reachable from the internet with HTTPS. Options include a university-managed virtual machine or the ARDC Nectar Research Cloud, both of which keep data in Australia. See the JATOS docs on [installation](https://www.jatos.org/Installation.html) and [running JATOS on a server](https://www.jatos.org/JATOS-on-a-server.html). For real data collection use [MySQL](https://www.jatos.org/JATOS-with-MySQL.html) rather than the default H2 database, keep JATOS updated, and back up the database and study folders regularly.

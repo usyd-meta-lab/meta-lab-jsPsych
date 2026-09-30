@@ -7,8 +7,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:jatos": "vite build && node scripts/build-jatos.mjs",
     "build:preview": "vite build --mode preview",
-    "serve": "vite preview"
+    "jatos:local": "docker compose up -d",
+    "jatos:stop": "docker compose down"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,7 @@
     "jspsych": "^8.3.0"
   },
   "devDependencies": {
+    "fflate": "^0.8.3",
     "vite": "^8.3.1",
     "vite-plugin-singlefile": "^2.3.3"
   }

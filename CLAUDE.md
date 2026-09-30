@@ -6,7 +6,9 @@ jsPsych v8 experiments for the USYD Meta Lab, installed from npm and bundled wit
 
 - `src/experiment.js`: the experiment. `buildTimeline(jsPsych)` returns the timeline; `options` are passed to `initJsPsych`. Edit this file when designing a study.
 - `src/main.js`: entry point. Runs the experiment for participants, or loads preview mode in dev and preview builds. Rarely needs changes.
+- `src/data.js`: saving data to JATOS. Only the participant build uses it.
 - `src/preview/`: the preview-mode timeline view. Never shipped to participants.
+- `study.config.json`: JATOS study settings. See `docs/jatos.md`.
 - `index.html`: page shell. Pins a light background so previews look the same in dark mode.
 - `vite.config.js`: dev server and build settings.
 - `.claude/launch.json`: preview server config for the Claude Code desktop app.
@@ -46,6 +48,16 @@ The dev server reloads on save and keeps the hash, so the edited section reruns 
 
 `npm run build` (what participants get) contains none of the preview code. Keep it that way: preview code only loads through the `import.meta.env` check in `src/main.js`.
 
+## Data saving (JATOS)
+
+Participant data is saved to JATOS by `src/data.js`; `docs/jatos.md` has the full workflow. Rules:
+
+- Don't add other ways of saving or sending data (fetch calls, third-party services, `localSave`) unless the user asks.
+- Record what the analysis needs in trial `data` (e.g. `data: { condition: "incongruent", correct_key: "f" }`). Every jsPsych data row is saved; the Prolific and JATOS ID columns are added automatically.
+- Keep the experiment's own `on_finish` free of redirects or `jatos` calls: `main.js` saves the data and ends the study after the timeline finishes.
+- Never fill in or change `uuid` in `study.config.json` by hand. `npm run build:jatos` generates it.
+- Preview mode must never load JATOS or save data.
+
 ## Previewing the experiment (always do this after changing it)
 
 After every change to the experiment, show the user a working preview, and check the parts you changed by jumping to them with `#only-<n>` rather than walking through the whole experiment. Which route to use depends on where this session runs.
@@ -79,6 +91,7 @@ To verify headlessly, run `npm run dev` in the background and drive `http://loca
 ## Commands
 
 - `npm run dev`: dev server with hot reload
-- `npm run build`: production build to `dist/` (upload this folder to the hosting server)
+- `npm run build`: participant build to `dist/`
+- `npm run build:jatos`: participant build packaged as `jatos/<dirName>.jzip` for import into JATOS
 - `npm run build:preview`: single-file build to `preview/index.html` for artifact previews
-- `npm run serve`: serve the `dist/` build locally, exactly as participants see it (no timeline view)
+- `npm run jatos:local` / `npm run jatos:stop`: local JATOS server for testing the data path (needs Docker)

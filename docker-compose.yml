@@ -1,0 +1,12 @@
+# Local JATOS server for testing the full data-saving path.
+#   npm run jatos:local   start it, then open http://localhost:9000 (user admin, password admin)
+#   npm run jatos:stop    stop it (data is kept in the jatos-data volume)
+services:
+  jatos:
+    image: jatos/jatos:3.11.3
+    ports:
+      - "9000:9000"
+    volumes:
+      - jatos-data:/opt/jatos_data
+volumes:
+  jatos-data:
