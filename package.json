@@ -1,0 +1,25 @@
+{
+  "name": "meta-lab-jspsych",
+  "version": "0.1.0",
+  "private": true,
+  "description": "USYD Meta Lab jsPsych v8 experiment template",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "build:preview": "vite build --mode preview",
+    "serve": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/usyd-meta-lab/meta-lab-jsPsych.git"
+  },
+  "dependencies": {
+    "@jspsych/plugin-html-keyboard-response": "^2.2.0",
+    "jspsych": "^8.3.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.1",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}
