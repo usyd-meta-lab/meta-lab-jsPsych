@@ -67,7 +67,14 @@ export default defineConfig(({ command, mode }) => ({
   // The kit imports the experiment's files ("/src/experiment.js",
   // "/study.config.json", "/src/stimuli/**"), so Vite must process its
   // source instead of pre-bundling it like other packages.
-  optimizeDeps: { exclude: [kit.name] },
+  // Its browser dependencies (jsPsych and plugins, some of which use
+  // CommonJS helpers) still need pre-bundling, so list them explicitly.
+  optimizeDeps: {
+    exclude: [kit.name],
+    include: Object.keys(kit.dependencies)
+      .filter((dep) => dep === "jspsych" || dep.startsWith("@jspsych/"))
+      .map((dep) => `${kit.name} > ${dep}`),
+  },
   server: {
     // Claude Code Desktop passes PORT when it picks a free port (autoPort).
     port: Number(process.env.PORT) || 5173,

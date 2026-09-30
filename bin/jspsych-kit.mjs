@@ -86,8 +86,14 @@ function newExperiment() {
   Object.assign(config, { template: false, title, dirName: name, uuid: "" });
   writeFileSync(configPath, JSON.stringify(config, null, 2) + "\n");
 
-  const claudePath = join(target, "CLAUDE.md");
-  writeFileSync(claudePath, readFileSync(claudePath, "utf8").replace("# Experiment", `# ${title}`));
+  // The study's name in its CLAUDE.md, README and the browser tab.
+  for (const file of ["CLAUDE.md", "README.md"]) {
+    const path = join(target, file);
+    if (existsSync(path)) writeFileSync(path, readFileSync(path, "utf8").replace("# Experiment", `# ${title}`));
+  }
+  const htmlPath = join(target, "index.html");
+  const escaped = title.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+  writeFileSync(htmlPath, readFileSync(htmlPath, "utf8").replace(/<title>[^<]*<\/title>/, `<title>${escaped}</title>`));
 
   try {
     execFileSync("git", ["init", "-q"], { cwd: target });

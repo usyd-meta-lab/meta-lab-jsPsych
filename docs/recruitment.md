@@ -8,7 +8,7 @@ Set `recruitment` in `study.config.json` to where participants come from:
 | `"sona"` | `?id=%SURVEY_CODE%` | `sona_id` | Redirect to SONA's completion URL, which grants course credit |
 | `"lab"` | none | none | JATOS's thank-you page |
 
-The logic is in `src/recruitment.js`. The experiment dashboard (`npm run dev`) shows the study link to use and where participants go at the end, with a warning if something is missing.
+The logic is in the kit's `src/recruitment.js`. The experiment dashboard (`npm run dev`) shows the study link to use and where participants go at the end, with a warning if something is missing.
 
 ## SONA
 
@@ -22,8 +22,8 @@ The logic is in `src/recruitment.js`. The experiment dashboard (`npm run dev`) s
    "endRedirectUrl": "<the completion URL, exactly as copied, XXXX included>"
    ```
    The build replaces `XXXX` with each participant's SONA ID code, so SONA knows whom to credit.
-3. Put `debrief()` from `src/blocks/debrief.js` last in the timeline: SONA participants see the approved debrief statement before they're sent back to SONA.
-4. Set `"minutes"` to how long the study takes and put `consent()` from `src/blocks/consent.js` first in the timeline. The consent form shows the length and the course credit: 1 credit per hour, rounded up to the next 0.25 (e.g. 20 minutes is 0.5 credits). Give the study the same credit on SONA; the dashboard and `npm run build:jatos` show it.
+3. Put the kit's `debrief()` last in the timeline: SONA participants see the approved debrief statement before they're sent back to SONA.
+4. Set `"minutes"` to how long the study takes and put the kit's `consent()` first in the timeline. The consent form shows the length and the course credit: 1 credit per hour, rounded up to the next 0.25 (e.g. 20 minutes is 0.5 credits). Give the study the same credit on SONA; the dashboard and `npm run build:jatos` show it.
 5. Run `npm run build:jatos` and import the study into JATOS.
 6. In JATOS, open the study's **Study Links** and copy the **General Single** link. Add `?id=%SURVEY_CODE%` to the end and paste it into the study's **Study URL** on SONA:
    ```
@@ -36,7 +36,7 @@ Test it with SONA's own "test the study" option, or check the data has a `sona_i
 ## Prolific
 
 1. In `study.config.json` set `"recruitment": "prolific"` and `endRedirectUrl` to Prolific's completion URL (`https://app.prolific.com/submissions/complete?cc=XXXXXXX`).
-2. Set `"minutes"` to how long the study takes and put `consent()` from `src/blocks/consent.js` first in the timeline. The consent form shows the length and the payment: £6 per hour, rounded up to the penny (e.g. 10 minutes is £1). Set the same reward on Prolific; the dashboard and `npm run build:jatos` show it.
+2. Set `"minutes"` to how long the study takes and put the kit's `consent()` first in the timeline. The consent form shows the length and the payment: £6 per hour, rounded up to the penny (e.g. 10 minutes is £1). Set the same reward on Prolific; the dashboard and `npm run build:jatos` show it.
 3. Build and import (`npm run build:jatos`). In JATOS copy the **General Single** link, and in Prolific use it as the study URL with Prolific's URL parameters:
    ```
    https://your-jatos-server/publix/<code>?PROLIFIC_PID={{%PROLIFIC_PID%}}&STUDY_ID={{%STUDY_ID%}}&SESSION_ID={{%SESSION_ID%}}
@@ -55,7 +55,7 @@ With `"dataSaving": "datapipe"` everything above is the same, except the study l
 
 ## Devices
 
-`"devices"` in `study.config.json` lists the devices participants may use: `"computer"`, `"tablet"` and/or `"phone"` (default `["computer"]`). Put `deviceCheck()` from `src/blocks/device.js` first in the timeline. Participants on another device see a message telling them what to do (return the study on Prolific, reopen it from SONA on an allowed device, or tell the researcher), and the run ends without the completion redirect, so they aren't paid or credited. JATOS marks these runs as failed with the message "Stopped: device", and the dashboard counts them as **Wrong device**.
+`"devices"` in `study.config.json` lists the devices participants may use: `"computer"`, `"tablet"` and/or `"phone"` (default `["computer"]`). Put the kit's `deviceCheck()` first in the timeline. Participants on another device see a message telling them what to do (return the study on Prolific, reopen it from SONA on an allowed device, or tell the researcher), and the run ends without the completion redirect, so they aren't paid or credited. JATOS marks these runs as failed with the message "Stopped: device", and the dashboard counts them as **Wrong device**.
 
 On Prolific, also set the study's **Device compatibility** to the same devices, so people on other devices never see the study.
 

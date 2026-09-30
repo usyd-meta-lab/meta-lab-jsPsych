@@ -1,0 +1,14 @@
+{
+  "name": "usyd-meta-lab",
+  "description": "USYD Meta Lab plugins for building and running jsPsych experiments",
+  "owner": {
+    "name": "USYD Meta Lab"
+  },
+  "plugins": [
+    {
+      "name": "meta-lab",
+      "source": "./plugin",
+      "description": "Start, build and launch Meta Lab jsPsych experiments the lab's way"
+    }
+  ]
+}

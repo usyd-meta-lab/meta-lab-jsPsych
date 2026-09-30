@@ -20,6 +20,12 @@
     "scripts",
     "src",
     "template",
+    "!template/node_modules",
+    "!template/dist",
+    "!template/preview",
+    "!template/jatos",
+    "!template/.jatos",
+    "!template/package-lock.json",
     "vite.js"
   ],
   "scripts": {

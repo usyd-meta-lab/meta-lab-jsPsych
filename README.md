@@ -1,74 +1,104 @@
-# meta-lab-jsPsych
+# Meta Lab jsPsych kit
 
-Starter template for [jsPsych v8](https://www.jspsych.org/) experiments in the USYD Meta Lab. jsPsych and its plugins are installed from npm and bundled with [Vite](https://vite.dev/).
+Build and run [jsPsych v8](https://www.jspsych.org/) experiments the USYD Meta Lab way, with Claude doing the coding. You describe the study; Claude builds it, shows it to you in a live preview, and sets up saving the data and paying or crediting participants.
+
+This repository has three parts:
+
+- **The kit** (`@usyd-meta-lab/jspsych-kit`): everything that isn't the experiment itself. That includes the experiment dashboard, saving data to JATOS or DataPipe, the lab's standard blocks (device check, consent, demographics, preloading, debrief), and the builds.
+- **The starter experiment** (`template/`): what every new study starts from.
+- **The Claude Code plugin** (`plugin/`): teaches Claude to start, build and launch experiments the lab's way.
+
+Each experiment lives in its own small folder that depends on one release of the kit. Kit fixes reach every experiment when it updates, and a running study stays exactly as it was until someone chooses to update it.
 
 ## Getting started
 
-Requires Node.js 20 or newer.
+### What you need (once)
 
-```sh
-npm install
-npm run dev
+- [Node.js](https://nodejs.org) 20 or newer (the LTS download)
+- [git](https://git-scm.com/downloads) (already on most Macs)
+- [Claude Code](https://claude.com/claude-code). The desktop app is easiest: its Browser pane shows your experiment as you build it.
+
+### Start a new experiment
+
+**With Claude (recommended).** Add the lab's plugin once. In a Claude Code session, run:
+
+```
+/plugin marketplace add usyd-meta-lab/meta-lab-jsPsych
+/plugin install meta-lab@usyd-meta-lab
 ```
 
-Open the printed URL (usually http://localhost:5173). You'll see the experiment dashboard. Its timeline lists every block and trial in the experiment, numbered. Click a row to run the experiment from that point, or "Only this" to run just that part. When the run ends, the recorded data is displayed, with buttons to download it as CSV or JSON. Preview data is never sent to JATOS.
+Then, in any session, say **"start a new experiment"**. Claude asks for the study's name, creates its folder and sets it up.
 
-The dashboard only exists in `npm run dev` and `npm run build:preview`. The participant build (`npm run build` / `npm run build:jatos`) contains none of it.
+**Or from a terminal:**
 
-Each part of the timeline has its own link, e.g. `http://localhost:5173/#only-2.1` or `#from-3`. The dev server reloads on save and keeps the link, so the section you're editing reruns immediately.
+```bash
+npx github:usyd-meta-lab/meta-lab-jsPsych new my-study --title "My study"
+```
 
-Name your blocks and trials with a `name` property in `src/experiment.js` so the timeline is readable.
+Then open the `my-study` folder in Claude Code and say **"set up this experiment"**. The folder already lists the lab plugin, so Claude Code offers to install it the first time you open it.
 
-## Collecting data
+### What happens next
 
-Participants run the experiment on the lab's [JATOS](https://www.jatos.org) server, which also stores the data. `npm run build:jatos` packages the experiment as a `.jzip` file to import into JATOS. Each trial is saved as it finishes, Prolific IDs are recorded automatically, and participants are redirected to Prolific only once their data is saved.
+Claude asks a few questions in one go, in plain language:
 
-With a JATOS API token in `.env.local`, the dashboard in `npm run dev` also shows participant numbers (completed, in progress, dropped out, withdrew, failed) and lets you download all participant data as CSV.
+1. What the study is called.
+2. Whether it's covered by the lab's ethics protocol (2022/796).
+3. Where participants come from: Prolific, SONA or in the lab.
+4. How long it takes. This sets the payment (£6 an hour) or SONA credit (1 an hour).
+5. Which devices are allowed.
+6. The design and what you'll analyse.
+7. Where data is saved.
+8. Whether to open the preview after each change.
 
-To test the whole data path before the lab server exists, run `npm run jatos`. It downloads and starts JATOS on your own computer, imports the experiment, and connects the dashboard to it, including a **Run as participant** button.
+It then builds the experiment and opens the **experiment dashboard**. That's a page for you, never for participants, listing every part of the experiment. Click a part to try it from there, or "Only this" to try just that part. At the end you see exactly what data was recorded, with CSV and JSON downloads.
 
-Setup, Prolific, data export and local testing: see [docs/jatos.md](docs/jatos.md).
+From there, keep describing changes ("add a practice block with feedback", "use the faces in src/stimuli/faces", "add an attention check") and Claude builds each one and shows it to you.
 
-Participants can come from Prolific, SONA or the lab: set `recruitment` in `study.config.json`. For SONA, paste the study's completion URL into `endRedirectUrl` and participants get their credit automatically. The dashboard shows the exact study link to paste into Prolific or SONA. See [docs/recruitment.md](docs/recruitment.md).
+## Your experiment's folder
 
-Studies can save to [DataPipe](https://pipe.jspsych.org) instead: set `"dataSaving": "datapipe"` and the DataPipe experiment ID in `study.config.json`, then host `dist/` on any web host. See [docs/datapipe.md](docs/datapipe.md) for the differences.
+```
+src/experiment.js    the experiment (Claude edits this)
+src/stimuli/         images, audio and video
+study.config.json    name, recruitment, length, devices, data saving
+index.html           page shell
+CLAUDE.md            loads the kit's instructions for Claude, plus notes on this study
+```
 
-## Designing an experiment with Claude
-
-Open the repo in Claude Code and describe the experiment you want. `CLAUDE.md` tells Claude how to build and preview it:
-
-- **Claude Code desktop app (local session):** Claude starts the dev server defined in `.claude/launch.json` and opens the experiment in the Browser pane, so you can watch it and click through it yourself. You can also start it from the server dropdown in the session toolbar.
-- **Claude Code on the web or mobile (cloud session):** the Browser pane can't reach a server inside the cloud container, so Claude runs `npm run build:preview` and publishes the resulting single-file HTML as a private artifact link you can open and run.
-
-## Commands
+Commands (Claude runs these for you, but you can too):
 
 | Command | What it does |
 | - | - |
-| `npm run dev` | Dev server with the experiment dashboard and hot reload |
-| `npm run build` | Participant build to `dist/` |
-| `npm run build:jatos` | Participant build packaged as `jatos/<dirName>.jzip` for JATOS import |
-| `npm run build:preview` | Self-contained `preview/index.html` for artifact previews |
-| `npm run jatos` / `jatos:stop` | Start local JATOS for testing (imports the experiment, prints a study link) / stop it |
+| `npm run dev` | The experiment dashboard, reloading as you edit |
+| `npm run build` | The participant version, in `dist/` |
+| `npm run build:jatos` | The participant version packaged for JATOS (`jatos/<name>.jzip`) |
+| `npm run build:preview` | A single-page preview, for sharing as a Claude artifact |
+| `npm run jatos` | JATOS on your own computer, for testing that saving works |
 
-## Project layout
+## Collecting data
 
+- **Prolific, SONA or in the lab:** Claude sets up the study link, participant IDs and the completion redirect, so Prolific participants are paid and SONA participants credited automatically. See [docs/recruitment.md](docs/recruitment.md).
+- **JATOS** (the default) hosts the experiment and stores the data. See [docs/jatos.md](docs/jatos.md). The lab's JATOS server is still being set up; until then, `npm run jatos` runs JATOS on your own computer for testing.
+- **DataPipe** is the alternative. It saves to a storage provider, and you host the experiment on any website. See [docs/datapipe.md](docs/datapipe.md).
+
+Before piloting, ask Claude to **"launch the study"**. It checks the setup, builds it and gives you the links to paste into Prolific or SONA.
+
+## Updating the kit
+
+Your experiment uses one release of the kit, named in its `package.json` (e.g. `github:usyd-meta-lab/meta-lab-jsPsych#v0.1.0`). Every data row records `kit_version` and `experiment_version` (your study's git commit), so you can always tell which code produced a dataset.
+
+- **To update**, ask Claude to "update the kit to v0.2.0". It changes the version, reinstalls and previews the whole study.
+- **Never update while collecting data** unless you need a specific fix: an update can change timing or saving mid-study.
+- **The plugin** doesn't update by itself unless you turn that on: in `/plugin`, go to **Marketplaces**, select `usyd-meta-lab` and choose **Enable auto-update**.
+
+## For maintainers
+
+[CLAUDE.md](CLAUDE.md) covers the layout, the rules for changing the kit, and testing. In short:
+
+```bash
+npm run setup
+npm run dev
 ```
-index.html            page shell
-src/main.js           entry point (participant run, or preview mode in dev)
-src/experiment.js     the experiment timeline: edit this
-src/data/             saving participant data: jatos.js or datapipe.js (participant build only)
-src/recruitment.js    Prolific / SONA / lab: study link parameters, ID columns, end redirect
-src/blocks/           standard lab blocks: device check, fullscreen, consent forms, demographics, preload, debrief
-src/stimuli/          images, audio and video (see src/stimuli/README.md)
-src/stimuli.js        stimulus("name") and stimuliIn("folder") for referring to them
-src/preview/          experiment dashboard (never shipped to participants)
-study.config.json     JATOS study settings (title, UUID, Prolific redirect)
-scripts/build-jatos.mjs  packages dist/ as a JATOS study archive
-scripts/jatos-dev-data.js  dev-server endpoint for downloading participant data
-scripts/jatos-local.mjs    local JATOS for testing (npm run jatos)
-.env.example          template for .env.local (JATOS URL and API token)
-vite.config.js        dev server and build config
-.claude/launch.json   Browser pane preview config for Claude Code desktop
-.claude/settings.json installs dependencies at the start of cloud sessions
-CLAUDE.md             instructions Claude follows in this repo
-```
+
+`npm run setup` installs the kit and the linked starter experiment, and `npm run dev` runs its dashboard with your changes.
+
+**To release**, bump `version` in `package.json`, commit, tag `v<version>` and push the tag. New experiments pin that tag, so push it before anyone runs `new` from that version. Mention anything that changes timing, what participants see or the saved data in the release notes.

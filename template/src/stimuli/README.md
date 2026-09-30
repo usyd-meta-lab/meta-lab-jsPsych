@@ -3,13 +3,13 @@
 Put the experiment's images, audio and video here (subfolders are fine) and refer to them by name in `src/experiment.js`:
 
 ```js
-import { stimulus, stimuliIn } from "./stimuli.js";
+import { stimulus, stimuliIn } from "@usyd-meta-lab/jspsych-kit";
 
 stimulus: stimulus("cat.png")                            // src/stimuli/cat.png
 timeline_variables: stimuliIn("faces").map((face) => ({ face }))  // every file in src/stimuli/faces/
 ```
 
-`preload()` (in `src/blocks/preload.js`) loads every file here before the task. Files here work in `npm run dev`, the participant build and the artifact preview.
+The kit's `preload(jsPsych)` loads every file here before the task. Files here work in `npm run dev`, the participant build and the artifact preview.
 
 Supported: png, jpg, gif, webp, avif, svg, bmp; mp3, wav, ogg, m4a, aac, flac; mp4, webm, mov, m4v.
 
