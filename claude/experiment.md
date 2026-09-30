@@ -13,7 +13,12 @@ When the user starts a new study (a fresh copy made with `jspsych-kit new`, or s
 
 1. **Study name.** Set `title` (shown in the browser tab and JATOS) and a matching `dirName` (letters, digits, `-` and `_`) in `study.config.json`, and check `"template"` is `false`. Also set the `<title>` in `index.html`.
 2. **Ethics protocol.** Is the study covered by HREC 2022/796? If yes, use the kit's `consent()` and `debrief()`. If not, ask for the approved Participant Information Statement and debrief before building, and add them word for word as the study's own blocks in `src/blocks/`, modelled on `KIT/src/blocks/consent.js` (see [Standard lab blocks](#standard-lab-blocks)).
-3. **Where participants come from:** Prolific, SONA or in the lab. Set `"recruitment"` and ask for the completion URL (see [Recruitment](#recruitment-prolific-sona-or-in-the-lab)).
+3. **Where participants come from:** Prolific, SONA or in the lab. Set `"recruitment"`, then ask for that platform's completion URL for `endRedirectUrl` (see [Recruitment](#recruitment-prolific-sona-or-in-the-lab)):
+   - **Prolific:** the completion URL from the study's completion code settings on Prolific (`https://app.prolific.com/submissions/complete?cc=...`). This is how participants get paid.
+   - **SONA:** the link under **Completion URLs** on the study's **Study Information** page, pasted with `survey_code=XXXX` as is. This is how participants get their credit.
+   - **In the lab:** none; participants see a thank-you page.
+
+   If they don't have it yet (the study isn't created on Prolific or SONA), carry on and remind them before launch: the dashboard and `npm run build:jatos` flag it as missing.
 4. **How long the study takes, in minutes.** Set `"minutes"`, then tell them the SONA credit or Prolific payment it works out to.
 5. **Which devices participants may use:** computers, tablets and/or phones. Set `"devices"`, e.g. `["computer"]`. For Prolific, tell them to set Prolific's Device compatibility to match.
 6. **The design and what will be analysed:** the conditions, whether each is between or within participants (and how participants are assigned: at random unless they say otherwise), the key measures, and any exclusion rules (attention checks, minimum accuracy, too-fast responses). Record in each trial's `data` everything the analysis needs, e.g. `condition`, `correct`, the correct response, so every data row can be analysed on its own. Add attention checks as named trials.

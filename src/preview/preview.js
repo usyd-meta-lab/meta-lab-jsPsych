@@ -22,6 +22,7 @@ import {
   sliceFrom,
   sliceOnly,
 } from "./timeline.js";
+import { setupSummary } from "./summary.js";
 import "./preview.css";
 
 const MODE_LABELS = {
@@ -161,7 +162,6 @@ function renderTimeline(invalidHash) {
           "div",
           {},
           el("p", { class: "pv-eyebrow" }, el("span", { class: "pv-brand" }, "Meta Lab"), "Experiment dashboard"),
-          el("h1", {}, document.title),
           el("p", { class: "pv-note" }, "For the research team only. Participants never see this page."),
         ),
         el(
@@ -170,6 +170,7 @@ function renderTimeline(invalidHash) {
           "Preview full experiment",
         ),
       ),
+      setupSummary(el),
       // Real participant numbers and data from JATOS: dev server only (see
       // scripts/jatos-dev-data.js). Never in the artifact or participant build.
       import.meta.env.DEV && participantsSection(),
@@ -246,44 +247,59 @@ function tile(label, value, hint, extraClass = "") {
   );
 }
 
-function compensationText({ minutes, credit, payment }) {
-  return credit !== undefined
-    ? `${minutes} minutes: set the study to ${credit} ${credit === 1 ? "credit" : "credits"} on SONA (the consent form says the same).`
-    : `${minutes} minutes: set the reward to ${payment} on Prolific (the consent form says the same).`;
-}
+// Names of the device options on Prolific's Device compatibility setting.
+const PROLIFIC_DEVICES = { computer: "Desktop", tablet: "Tablet", phone: "Mobile" };
 
-function devicesText({ devices, name }) {
-  const labels = { computer: "computers", tablet: "tablets", phone: "phones" };
-  const list = devices.map((d) => labels[d]).join(", ");
-  // Prolific's own device filter stops excluded devices being recruited at all.
-  const prolific = { computer: "Desktop", tablet: "Tablet", phone: "Mobile" };
-  const filter = devices.map((d) => prolific[d]).join(", ");
-  return name === "prolific"
-    ? `Allowed devices: ${list}. On Prolific, set Device compatibility to ${filter} only.`
-    : `Allowed devices: ${list}. Other devices are stopped at the device check.`;
-}
-
-/** Where participants come from, the study URL to give out, and where they go at the end. */
+/**
+ * What to set on Prolific or SONA, as a checklist. The study's facts
+ * (length, pay, devices) are in the summary across the top; this only
+ * lists the steps.
+ */
 function recruitmentPanel(recruitment, datapipe) {
   if (!recruitment) return null;
+  const { name, compensation: pay, redirect } = recruitment;
   const base = datapipe ? "<your web host address>" : `<JATOS ${recruitment.jatosLink} link>`;
   const url = recruitment.linkParams ? `${base}?${recruitment.linkParams}` : base;
-  const where = { sona: "SONA's Study URL field", prolific: "Prolific's study URL field", lab: "the browser on each lab computer" };
+  const row = (label, ...value) => [el("dt", {}, label), el("dd", {}, ...value)];
+
+  const rows = [
+    row(
+      name === "lab" ? "Link for each lab computer" : "Study URL",
+      el("code", { class: "pv-code" }, url),
+      recruitment.linkParams && el("span", { class: "pv-note" }, "Keep the part after ? as it is: it records each participant's ID."),
+    ),
+  ];
+  if (name === "prolific") {
+    if (pay) rows.push(row("Reward", `${pay.payment}, to match the consent form`));
+    rows.push(row("Device compatibility", `${recruitment.devices.map((d) => PROLIFIC_DEVICES[d]).join(", ")} only`));
+  }
+  if (name === "sona" && pay) rows.push(row("Credits", `${pay.credit}, to match the consent form`));
+  if (name !== "lab") {
+    rows.push(
+      row(
+        "Completion URL",
+        redirect
+          ? el("code", {}, redirect)
+          : el(
+              "span",
+              { class: "pv-missing" },
+              name === "sona"
+                ? "Not set yet: paste the Completion URL from the study's Study Information page on SONA into endRedirectUrl in study.config.json."
+                : "Not set yet: paste the completion URL from Prolific (https://app.prolific.com/submissions/complete?cc=...) into endRedirectUrl in study.config.json.",
+            ),
+      ),
+    );
+  }
+  // The missing completion URL is already in its row above.
+  const problems = recruitment.problems.filter((problem) => !/need endRedirectUrl/.test(problem));
+  const heading = { prolific: "Set up on Prolific", sona: "Set up on SONA", lab: "Running it in the lab" }[name];
+
   return el(
     "div",
     { class: "pv-recruitment" },
-    el("p", {}, el("strong", {}, `Recruitment: ${recruitment.label}. `), `Study URL for ${where[recruitment.name]}:`),
-    el("code", { class: "pv-code" }, url),
-    recruitment.linkParams &&
-      el("p", { class: "pv-note" }, "Keep the part after ? exactly as shown: it records each participant's ID."),
-    // Must match what's set on SONA or Prolific and what the consent form says.
-    recruitment.compensation &&
-      el("p", { class: "pv-note" }, compensationText(recruitment.compensation)),
-    el("p", { class: "pv-note" }, devicesText(recruitment)),
-    recruitment.redirect
-      ? el("p", { class: "pv-note" }, "At the end, participants are sent to: ", el("code", {}, recruitment.redirect))
-      : el("p", { class: "pv-note" }, "At the end, participants see a thank-you page (no redirect)."),
-    recruitment.problems.map((problem) => el("p", { class: "pv-warning" }, problem)),
+    el("p", { class: "pv-recruitment-title" }, heading),
+    el("dl", { class: "pv-checklist" }, rows.flat()),
+    problems.map((problem) => el("p", { class: "pv-warning" }, problem)),
   );
 }
 
