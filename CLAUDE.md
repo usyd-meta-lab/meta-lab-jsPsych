@@ -35,7 +35,7 @@ Keep `buildTimeline` returning an array of blocks (objects with a `timeline` arr
 
 ## Preview mode
 
-`npm run dev` and `npm run build:preview` open a timeline view instead of starting the experiment. It lists every block and trial, numbered (`2`, `2.1`, ...). Clicking a row runs the experiment from that point to the end; "Only this" runs just that block or trial, still inside its parent blocks so timeline variables apply. When a run ends, the recorded data is shown.
+`npm run dev` and `npm run build:preview` open a timeline view instead of starting the experiment. It lists every block and trial, numbered (`2`, `2.1`, ...). Clicking a row runs the experiment from that point to the end; "Only this" runs just that block or trial, still inside its parent blocks so timeline variables apply. When a run ends, the recorded data is shown with Download CSV and Download JSON buttons. Preview data is never sent anywhere.
 
 Each view has a URL hash, which is also how to jump straight to a part:
 
@@ -77,12 +77,12 @@ The Browser pane cannot reach a localhost server running in a cloud container. I
 
 1. `npm install` (if `node_modules/` is missing)
 2. `npm run build:preview`. This writes `preview/index.html` with all JS, CSS and fonts inlined.
-3. Publish `preview/index.html` with the Artifact tool. Reuse the same path on later rebuilds so the link stays the same.
+3. Publish `preview/index.html` with the Artifact tool, declaring `capabilities: {downloads: true}` so the Download CSV / JSON buttons work in the artifact. Reuse the same path on later rebuilds so the link stays the same.
 4. Give the user the link. It opens on the timeline view. Links can also point at one part: add `#only-2` to the artifact URL.
 
 Artifact pages only load inlined content, so stimuli in `public/` are not included in the preview build. For image or audio stimuli, import them in `src/experiment.js` (`import catUrl from "./stimuli/cat.png"`) so Vite inlines them, or note to the user that those stimuli will not appear in the artifact preview.
 
-The artifact publisher may warn about a download link. That comes from jsPsych's built-in `localSave` code and can be ignored.
+Without the `downloads` capability the artifact publisher warns about a download link, and the download buttons show "Downloads aren't available in this view".
 
 ### Checking without a browser pane
 

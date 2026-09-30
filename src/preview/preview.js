@@ -30,8 +30,13 @@ const MODE_LABELS = {
 let root;
 let items;
 let activeRun = null;
+// In a published Claude artifact, files can only be saved through the
+// viewer's `downloads` capability. Elsewhere (the dev server) window.claude
+// is absent and a normal browser download is used.
+let artifactDownloads = Promise.resolve(null);
 
 export function startPreview() {
+  if (window.claude?.use) artifactDownloads = window.claude.use("downloads");
   root = document.createElement("div");
   root.className = "pv";
   document.body.append(root);
@@ -188,7 +193,7 @@ async function runPreview(mode, path) {
   await jsPsych.run(timeline);
   if (activeRun !== run) return; // the researcher navigated away mid-run
   activeRun = null;
-  renderFinished(stage, jsPsych.data.get());
+  renderFinished(stage, jsPsych.data.get(), fileStem(mode, path));
 }
 
 function stopActiveRun() {
@@ -202,8 +207,52 @@ function stopActiveRun() {
   }
 }
 
-function renderFinished(stage, data) {
+// ---------------------------------------------------------------- download
+
+function fileStem(mode, path) {
+  const part = mode === "full" ? "full" : `${mode}-${formatPath(path)}`;
+  const time = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
+  return `preview_${part}_${time}`;
+}
+
+async function saveFile(filename, text) {
+  if (window.claude?.use) {
+    const downloads = await artifactDownloads;
+    if (!downloads) return "Downloads aren't available in this view.";
+    try {
+      await downloads.save({ filename, data: text });
+      return `Saved ${filename}.`;
+    } catch (error) {
+      if (error?.code === "declined") return "";
+      if (error?.code === "rate_limited") return "A save prompt is already open.";
+      return "Downloads aren't available in this view.";
+    }
+  }
+  const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
+  const link = el("a", { href: url, download: filename });
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return `Saved ${filename}.`;
+}
+
+function downloadButton(label, filename, getText, status) {
+  return el(
+    "button",
+    {
+      type: "button",
+      onclick: async () => {
+        status.textContent = await saveFile(filename, getText());
+      },
+    },
+    label,
+  );
+}
+
+function renderFinished(stage, data, stem) {
   const count = data.count();
+  const status = el("span", { class: "pv-status", role: "status" });
   stage.replaceChildren(
     el(
       "section",
@@ -215,6 +264,9 @@ function renderFinished(stage, data) {
         { class: "pv-actions" },
         el("button", { class: "pv-primary", type: "button", onclick: route }, "Run again"),
         el("button", { type: "button", onclick: () => navigate("") }, "Back to timeline"),
+        downloadButton("Download CSV", `${stem}.csv`, () => data.csv(), status),
+        downloadButton("Download JSON", `${stem}.json`, () => data.json(true), status),
+        status,
       ),
       el("pre", { class: "pv-data" }, data.json(true)),
     ),

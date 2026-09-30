@@ -11,7 +11,7 @@ npm install
 npm run dev
 ```
 
-Open the printed URL (usually http://localhost:5173). You'll see the preview timeline: every block and trial in the experiment, numbered. Click a row to run the experiment from that point, or "Only this" to run just that part. When the run ends, the recorded data is displayed.
+Open the printed URL (usually http://localhost:5173). You'll see the preview timeline: every block and trial in the experiment, numbered. Click a row to run the experiment from that point, or "Only this" to run just that part. When the run ends, the recorded data is displayed, with buttons to download it as CSV or JSON. Preview data is never sent to JATOS.
 
 The timeline view only exists in `npm run dev` and `npm run build:preview`. The participant build (`npm run build` / `npm run build:jatos`) contains none of the preview code and never shows the timeline.
 

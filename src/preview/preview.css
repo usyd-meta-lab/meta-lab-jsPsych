@@ -161,7 +161,8 @@
 }
 .pv-done h2 { margin: 0 0 4px; font-size: 20px; }
 .pv-done p { margin: 0 0 16px; color: var(--pv-muted); font-size: 14px; }
-.pv-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.pv-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
+.pv-status { font-size: 13px; color: var(--pv-muted); }
 .pv-data {
   margin: 0;
   padding: 12px;
